@@ -48,7 +48,7 @@ Output: file path → complete content → one-line rationale (non-obvious decis
 
 ## Scratchpad Cleanup
 
-The `rubysmithing-analyse` agent creates diagnostic scratchpad files in `.specs/scratchpad/`. These accumulate over time. Offer cleanup when appropriate:
+The `ruby-diagnostics-engineer` agent creates diagnostic scratchpad files in `.specs/scratchpad/`. These accumulate over time. Offer cleanup when appropriate:
 
 ```bash
 ruby $CLAUDE_PLUGIN_ROOT/skills/analyse/scripts/sweep-scratchpads.rb --dry-run
