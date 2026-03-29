@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "syncopated-context",
+  "version": "1.2.0",
+  "description": "Convention-aware Ruby development suite for Claude Code. Hub-and-spoke skill system with orchestrated agents for code generation, TUI scaffolding, AI/NLP components, refactoring, QA assessment, and YARD documentation.",
+  "owner": {
+    "name": "Robert Pannick",
+    "email": "rwpannick@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "rubysmithing",
+      "description": "Convention-aware Ruby development suite with hub-and-spoke architecture. Provides 8 specialized agents: orchestrator (routing), context (gem API verification via Context7), main (POROs, Rake, config), scaffold (rubysmith/gemsmith project init), genai (LLM, RAG, DSPy, MCP), tui (BubbleTea, Lipgloss, Huh, Gum), refactor (convention-targeted rewriting), report (SIFT Protocol QA), and yardoc (YARD docs with type inference). Supports Lite Mode for stdlib-only scripts and Standard Mode for production code with async, circuit_breaker, and Zeitwerk compliance.",
+      "version": "1.2.0",
+      "author": {
+        "name": "Robert Pannick",
+        "email": "rwpannick@gmail.com"
+      },
+      "source": "./plugins/rubysmithing",
+      "category": "development"
+    }
+  ]
+}

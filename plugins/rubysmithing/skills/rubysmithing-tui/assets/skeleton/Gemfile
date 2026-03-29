@@ -1,0 +1,21 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# Runtime spine
+gem "dotenv"
+gem "tty-config"
+gem "zeitwerk"
+
+# TUI stack
+gem "bubbles"
+gem "bubbletea"
+gem "glamour"
+gem "gum"
+gem "huh"
+gem "lipgloss"
+
+# Add as needed:
+# gem "bubblezone"   # mouse events
+# gem "ntcharts"     # charts
+# gem "harmonica"    # animations

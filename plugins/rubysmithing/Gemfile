@@ -1,0 +1,45 @@
+# frozen_string_literal: true
+
+ruby file: ".ruby-version"
+
+source "https://rubygems.org"
+
+gem "bubbletea"
+gem "dry-struct"
+gem "dry-types"
+gem "journald-logger"
+gem "lipgloss"
+gem "rake"
+gem "refinements"
+gem "sequel"
+gem "sqlite3"
+gem "yajl-ruby"
+gem "zeitwerk"
+
+group :quality do
+  gem "git-lint"
+  gem "simplecov", require: false
+end
+
+group :development, :test do
+  gem "rdoc"
+  gem "rspec", "~> 3.10"
+  gem "rubocop"
+  gem "rubocop-factory_bot"
+  gem "rubocop-minitest"
+  gem "rubocop-packaging"
+  gem "rubocop-performance"
+  gem "rubocop-rake"
+  gem "rubocop-rspec"
+  gem "rubocop-sequel"
+  gem "rubocop-shopify"
+  gem "rubocop-thread_safety"
+  gem "ruby-lsp"
+  gem "solargraph"
+  gem "yard"
+end
+
+group :tools do
+  gem "amazing_print"
+  gem "debug"
+end

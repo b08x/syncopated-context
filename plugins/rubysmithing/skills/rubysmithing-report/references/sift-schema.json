@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SIFTReport",
+  "description": "Machine-parseable output schema for rubysmithing-report JSON Output Mode.",
+  "type": "object",
+  "required": ["meta", "sections"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["convention_target", "mode", "generated_at"],
+      "properties": {
+        "convention_target": { "type": "string", "description": "RuboCop | StandardRB | Rubysmith | community idioms" },
+        "mode": { "type": "string", "enum": ["full", "system_design", "tech_advisory", "backlog", "json"] },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "file": { "type": "string", "description": "Path or identifier of the assessed file/directory" }
+      }
+    },
+    "sections": {
+      "type": "object",
+      "properties": {
+        "s1_specifications": {
+          "description": "Verified Specifications — what was confirmed, partial, missing, or violating",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["component", "status"],
+            "properties": {
+              "component": { "type": "string" },
+              "status": { "type": "string", "enum": ["confirmed", "partial", "missing", "violation"] },
+              "details": { "type": "string" },
+              "confidence": { "type": "integer", "minimum": 1, "maximum": 5 }
+            }
+          }
+        },
+        "s2_issues": {
+          "description": "Issues & Risks — actionable findings with severity",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["item", "severity"],
+            "properties": {
+              "item": { "type": "string" },
+              "issue_type": { "type": "string" },
+              "description": { "type": "string" },
+              "severity": { "type": "string", "enum": ["critical", "high", "medium", "low", "info"] },
+              "pattern_key": { "type": "string", "description": "Named pattern from refactor-patterns.md, if applicable" }
+            }
+          }
+        },
+        "s3_summary": {
+          "description": "Issue counts keyed by severity",
+          "type": "object",
+          "properties": {
+            "critical": { "type": "integer" },
+            "high": { "type": "integer" },
+            "medium": { "type": "integer" },
+            "low": { "type": "integer" },
+            "info": { "type": "integer" }
+          }
+        },
+        "s4_optimizations": {
+          "description": "Suggested optimizations beyond compliance",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "area": { "type": "string" },
+              "suggestion": { "type": "string" },
+              "effort": { "type": "string", "enum": ["low", "medium", "high"] }
+            }
+          }
+        },
+        "s5_resources": {
+          "description": "Resource assessment — gems, libs, external deps",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "type": "string" },
+              "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "notes": { "type": "string" }
+            }
+          }
+        },
+        "s6_overview": {
+          "description": "Revised project overview prose",
+          "type": "string"
+        },
+        "s7_feasibility": {
+          "description": "Technical feasibility assessment prose",
+          "type": "string"
+        },
+        "s8_best_practice": {
+          "description": "Best practice suggestion prose",
+          "type": "string"
+        }
+      }
+    }
+  }
+}
