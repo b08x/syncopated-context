@@ -1,7 +1,7 @@
 {
   "name": "rubysmithing",
-  "version": "1.2.0",
-  "description": "Convention-aware Ruby development suite. Hub-and-spoke skill system with orchestrated agents for code generation, TUI scaffolding, AI/NLP components, refactoring, QA assessment, and YARD documentation.",
+  "version": "2.0.0",
+  "description": "Convention-aware Ruby development suite. Flat skill structure with shared agents, references, and scripts at plugin root. Skills: plan, analyse, refactor, sift, scaffold, yardoc, genai, tui, context.",
   "author": {
     "name": "Robert Pannick",
     "email": "rwpannick@gmail.com"
