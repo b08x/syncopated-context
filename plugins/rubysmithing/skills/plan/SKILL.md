@@ -22,6 +22,7 @@ When a task falls outside this skill's scope, use the corresponding agent:
 | Refactoring | `rubysmithing-refactor` | Convention fixes, Zeitwerk compliance |
 | QA assessment | `rubysmithing-report` | SIFT audits, design reviews |
 | YARD docs | `rubysmithing-yardoc` | Documentation generation |
+| Foreign codebase translation | `rubysmithing-deconstructor` | Translate Python/React/Go to Ruby blueprint |
 
 **Delegation pattern**: When delegating, invoke the agent using the Task tool
 with the appropriate agent name from `$CLAUDE_PLUGIN_ROOT/agents/`.

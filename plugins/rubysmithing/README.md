@@ -1,24 +1,265 @@
 <div align="center">
 
-# rubysmithing plugin
+# rubysmithing
 
-Contributor reference for the rubysmithing Claude Code plugin — skill structure, authoring conventions, and development workflow.
+Convention-aware Ruby development suite for Claude Code — thirteen specialized agents covering code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, YARD documentation, and foreign codebase translation.
+
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Ruby](https://img.shields.io/badge/ruby-3.4.4-red)
 
 </div>
 
 ---
 
-## Plugin Structure
+## Features
 
-The plugin follows a **shared-root pattern**: resources used by multiple skills live at the plugin root; skill directories contain only what is exclusive to that skill.
+- **Convention-locked code generation** — detects `.rubocop.yml`, `standard` in Gemfile, or `.rubysmith` presets automatically; every generated file is calibrated to the detected target
+- **Dual execution modes** — Lite Mode for stdlib-only scripts under 50 lines; Standard Mode for the full production stack (`frozen_string_literal`, Zeitwerk, `Async {}`, `circuit_breaker`, `journald-logger`)
+- **Verified gem API resolution** — the Context agent resolves live method signatures via Context7 MCP before any library-specific code is written, with SQLite-backed caching that survives session restarts
+- **Parallel agent dispatch** — compound requests (e.g., "refactor this RAG pipeline and build a TUI for it") are decomposed and dispatched to independent agents concurrently
+- **Closed-loop evaluation** — the Meta-Judge generates rubric specs before refactoring begins; the Judge evaluates the output against those specs with file:line evidence; the Refactor agent retries until the score passes
+- **Structured diagnostic framework** — the Analyse agent applies Gemba Walk, Muda Analysis, Root-Cause Tracing, or Five Whys depending on the problem type; findings persist to a scratchpad for downstream handoff
+- **Foreign codebase translation** — the Deconstructor produces Zeitwerk-compliant Ruby blueprints from Python, React, and Go sources, with explicit GIL and GC impact notes
+- **Full SIFT QA reporting** — eight-section quality assessments anchored to the Toulmin evidence framework, with optional SADD-integrated verification footer
+
+---
+
+## Skills
+
+| Skill | Activation | What it does |
+|:------|:-----------|:-------------|
+| `plan` | Code generation outside specialized domains | Hub orchestrator — detects conventions, dispatches to spoke agents, enforces error contracts |
+| `analyse` | "root cause", "dead code", "muda", "gemba", Zeitwerk NameError | Gemba Walk, Muda Analysis, Root-Cause Tracing, Five Whys; produces keyed findings for refactor handoff |
+| `refactor` | "refactor", "fix conventions", "Zeitwerk compliance" | Convention-targeted rewrites with optional do-and-judge retry loop |
+| `sift` | "assess", "audit", "SIFT", "tech advisory", "what's wrong" | SIFT Protocol V1.0 QA reports — Full Report, System Design Review, Tech Advisory, Backlog modes |
+| `scaffold` | "new project", rubysmith, gemsmith, "scaffold a tool" | Project initialization via rubysmith/gemsmith CLI with archetype presets |
+| `yardoc` | `@param`, `@return`, "yardoc", "document this code" | YARD documentation via AST analysis and type inference |
+| `genai` | LLM, RAG, chatbot, DSPy, MCP server, embeddings, pgvector | AI/NLP component scaffolding — ruby_llm, dspy.rb, fast-mcp, pgvector+sequel pipelines |
+| `tui` | BubbleTea, Lipgloss, Huh, Gum, NTCharts, "terminal UI" | Terminal UI scaffolding using the Ruby Charm/Bubble ecosystem |
+| `context` | Prerequisite when non-stdlib gems are in scope | Gem API verification via Context7 MCP; SQLite-cached results with graceful degradation |
+
+---
+
+## Agent Architecture
+
+The suite runs thirteen specialized agents organized into five layers. Each agent carries an SFL-derived behavioral persona that enforces its operational role.
+
+### Orchestration & Control
+
+| Agent | Role | Persona |
+|:------|:-----|:--------|
+| `rubysmithing-orchestrator` | Entry point; routing, convention detection, parallel dispatch | The Bureaucrat — decisive, strict |
+
+### Generation & Production
+
+| Agent | Role | Persona |
+|:------|:-----|:--------|
+| `rubysmithing-main` | General Ruby code generation (Lite/Standard modes) | The Generalist — pragmatic, tireless |
+| `rubysmithing-genai` | AI/NLP component scaffolding | The Visionary — structured, modern |
+| `rubysmithing-tui` | Terminal UI scaffolding | The Aestheticist — design-oriented, state-obsessed |
+| `rubysmithing-scaffold` | Project initialization | The Future-Proof Visionary — foundational, optimistic |
+| `rubysmithing-context` | Gem API verification and SQLite caching | The Epistemic Verifier — skeptical, rigorous |
+
+### Diagnostic & Remediation
+
+| Agent | Role | Persona |
+|:------|:-----|:--------|
+| `rubysmithing-analyse` | Root-cause analysis, Gemba Walk, Muda identification | The Stealth Debugger — inquisitive, paranoid |
+| `rubysmithing-refactor` | Convention-targeted rewrites, Zeitwerk compliance, do-and-judge loops | The Code Janitor — pedantic, relentless |
+
+### Governance & Evaluation
+
+| Agent | Role | Persona |
+|:------|:-----|:--------|
+| `rubysmithing-meta-judge` | Pre-evaluation YAML rubric specification | The Specifier — risk-averse, rigid |
+| `rubysmithing-judge` | Rubric application with file:line evidence, PASS/FAIL verdict | The Evaluator — punitive, strict |
+| `rubysmithing-report` | SIFT Protocol QA reports, architectural reviews | The Pragmatist — analytical, holistic |
+
+### Documentation & Translation
+
+| Agent | Role | Persona |
+|:------|:-----|:--------|
+| `rubysmithing-yardoc` | YARD documentation via AST analysis and type inference | The Semantic Inferencer — academic, precise |
+| `rubysmithing-deconstructor` | Foreign codebase → Ruby OOP blueprint (Python, React, Go) | "Other Steve" — weary, adversarial, anti-slop |
+
+The orchestrator never implements code directly. The meta-judge never evaluates artifacts. The deconstructor never writes implementation. Separation of powers is structural.
+
+---
+
+## Installation
+
+The plugin is distributed via the Claude Code plugin marketplace.
+
+<details>
+<summary>Claude Code — Marketplace Install</summary>
+
+```bash
+claude plugin install rubysmithing
+```
+
+After installation, invoke any skill by name:
+
+```
+/rubysmithing:plan
+/rubysmithing:analyse
+/rubysmithing:refactor
+/rubysmithing:sift
+/rubysmithing:scaffold
+/rubysmithing:yardoc
+/rubysmithing:genai
+/rubysmithing:tui
+/rubysmithing:context
+```
+
+</details>
+
+<details>
+<summary>Local Development Install</summary>
+
+```bash
+git clone https://github.com/rwpannick/rubysmithing-plugin
+cd rubysmithing-plugin/plugins/rubysmithing
+bundle install
+```
+
+</details>
+
+---
+
+## Usage
+
+### Code Generation
+
+```
+/rubysmithing:plan Write a Sequel-backed data pipeline with async processing and circuit breaker wrapping
+```
+
+The orchestrator detects conventions, flags non-stdlib gems, runs the context agent for API verification, then delegates to `rubysmithing-main`.
+
+### Analysis
+
+```
+/rubysmithing:analyse I keep getting NameError: uninitialized constant MyApp::Data::Processor
+```
+
+The analyse agent traces the Zeitwerk load path, identifies the constant → file path mismatch, and keys the finding to a pattern in `refactor-patterns.md` for handoff.
+
+```
+/rubysmithing:analyse This codebase feels bloated — half the methods seem unused
+```
+
+Triggers Muda Analysis: maps seven Ruby waste types (dead methods, unused gems, over-processing, stale flags) across the target directory.
+
+### Refactoring
+
+```
+/rubysmithing:refactor lib/app/processor.rb
+```
+
+Convention scan → AST-targeted rewrites → optional do-and-judge retry loop for critical files.
+
+### QA Report
+
+```
+/rubysmithing:sift Review this project and tell me what's wrong
+```
+
+Full SIFT V1.0 report: eight sections, Toulmin evidence anchoring, optional SADD verification footer.
+
+### TUI Scaffolding
+
+```
+/rubysmithing:tui Build a BubbleTea monitoring dashboard for my RAG pipeline metrics
+```
+
+Runs `rubysmithing-context` as a prerequisite, then generates the full BubbleTea application skeleton: `app.rb`, screen definitions, `Components::Base` adapters, Lipgloss styles.
+
+### Foreign Codebase Translation
+
+```
+/rubysmithing:plan Translate this Python FastAPI service to Ruby
+```
+
+Routes to `rubysmithing-deconstructor`: surveys the source, maps paradigms (decorators → `Module#prepend`, dataclasses → `Struct.new(keyword_init: true)`), produces a Zeitwerk-compliant Blueprint, Object Graph, and Translation Map with confidence ratings.
+
+---
+
+## Convention Modes
+
+### Lite Mode
+
+Triggers on: "quick script", "no dependencies", "stdlib only", single-file output under ~50 lines.
+
+- Pure Ruby stdlib — no `dry-schema`, `async`, `circuit_breaker`
+- `frozen_string_literal` recommended but not enforced
+- Single file; brief inline comment for non-obvious choices
+
+### Standard Mode
+
+Default for all other tasks. Multi-file requests always use Standard Mode regardless of individual file line count.
+
+Every generated file applies:
+
+```ruby
+# frozen_string_literal: true
+```
+
+Full convention stack:
+
+- Zeitwerk-compliant path ↔ class name mapping
+- `module_function` over `extend self`
+- `Async { }` over `Thread.new`
+- `circuit_breaker` wrapping on all external API calls
+- `journald-logger` over `puts` / `p` / `pp`
+- `Struct.new(keyword_init: true)` for value objects
+- Keyword args for methods with 3+ parameters
+- Guard clauses over nested conditionals
+
+---
+
+## Gem API Cache
+
+The context agent maintains a SQLite database at `~/.rubysmithing/context_cache.db`. Resolved gem signatures persist across session restarts and degrade gracefully when upstream APIs are unavailable.
+
+```bash
+# Check cache status for a gem
+ruby scripts/context_cache.rb fetch ruby_llm --json
+
+# Store a resolved entry manually
+ruby scripts/context_cache.rb store ruby_llm /crmne/ruby_llm '[".chat(...)"]' 'RubyLLM.chat'
+
+# List all cached gems
+ruby scripts/context_cache.rb list
+
+# Force a fresh lookup
+ruby scripts/context_cache.rb evict ruby_llm
+```
+
+Degradation order: fresh cache → stale cache (with `#stale-cache` annotation) → unverified fallback (with `#WARNING: Unverified API Syntax` comments). The cache never blocks code generation; it annotates uncertainty instead.
+
+See `references/cache-cli.md` for full exit codes and `--json` output shapes. See `references/gem-registry.md` for the curated Context7 ID mapping covering ~40 gems in the stack.
+
+---
+
+## Plugin Structure
 
 ```
 plugins/rubysmithing/
 ├── .claude-plugin/plugin.json   # Plugin metadata (name, version, description)
-├── agents/                      # Shared agents — referenced as $CLAUDE_PLUGIN_ROOT/agents/
-│   ├── rubysmithing-context.md  # Gem API verification prerequisite
-│   ├── rubysmithing-genai.md    # AI/NLP scaffolder
-│   └── rubysmithing-tui.md      # TUI scaffolder
+├── agents/                      # All 13 agents — shared at plugin root
+│   ├── rubysmithing-orchestrator.md
+│   ├── rubysmithing-main.md
+│   ├── rubysmithing-context.md
+│   ├── rubysmithing-genai.md
+│   ├── rubysmithing-tui.md
+│   ├── rubysmithing-scaffold.md
+│   ├── rubysmithing-analyse.md
+│   ├── rubysmithing-refactor.md
+│   ├── rubysmithing-meta-judge.md
+│   ├── rubysmithing-judge.md
+│   ├── rubysmithing-report.md
+│   ├── rubysmithing-yardoc.md
+│   └── rubysmithing-deconstructor.md
 ├── commands/                    # Shared commands — context cache management
 ├── references/                  # Shared reference docs
 │   ├── gem-registry.md          # Context7 ID → gem mapping with architectural roles
@@ -31,37 +272,38 @@ plugins/rubysmithing/
 ├── assets/
 │   └── skeleton/                # TUI project skeleton (copied per scaffold)
 ├── skills/
-│   ├── plan/                    # Hub orchestrator; holds error-contract.md + conventions
-│   ├── analyse/                 # Gemba Walk, Muda, Root-Cause Tracing, Five Whys
-│   ├── context/                 # SKILL.md only — content at plugin root
-│   ├── genai/                   # SKILL.md only — content at plugin root
-│   ├── refactor/                # Convention-targeted rewrites
-│   ├── scaffold/                # rubysmith / gemsmith project initialization
-│   ├── sift/                    # SIFT Protocol QA audits
-│   ├── tui/                     # SKILL.md only — content at plugin root
-│   └── yardoc/                  # YARD documentation generator
-├── Gemfile                      # Dev/test dependencies
+│   ├── plan/                    # Hub orchestrator; error-contract.md + conventions
+│   ├── analyse/                 # Methods, scratchpad scripts
+│   ├── context/                 # SKILL.md only — agent and refs at plugin root
+│   ├── genai/                   # SKILL.md only — agent and refs at plugin root
+│   ├── refactor/                # Refactor patterns, do-and-judge integration
+│   ├── scaffold/                # scaffold-patterns.md
+│   ├── sift/                    # SIFT Protocol docs, templates, schema
+│   ├── tui/                     # SKILL.md only — agent, refs, assets at plugin root
+│   └── yardoc/                  # YARD patterns
+├── Gemfile
 ├── .rubocop.yml                 # RuboCop config (Ruby 3.4)
 └── .tool-versions               # Ruby 3.4.4 via asdf
 ```
 
----
+### Shared vs Skill-Local Resources
 
-## Development Commands
+Resources used by two or more skills live at the plugin root and are referenced via absolute path:
 
-All commands run from `plugins/rubysmithing/`:
-
-```bash
-bundle install          # Install dependencies
-
-bundle exec rubocop     # Lint
-bundle exec rubocop -a  # Lint with autocorrect
-
-bundle exec rspec                              # Full test suite
-bundle exec rspec spec/path/to/file_spec.rb   # Single spec
-
-bundle exec git-lint    # Validate commit message format
 ```
+$CLAUDE_PLUGIN_ROOT/agents/rubysmithing-context.md
+$CLAUDE_PLUGIN_ROOT/references/gem-registry.md
+$CLAUDE_PLUGIN_ROOT/scripts/context_cache.rb
+```
+
+Resources exclusive to one skill stay inside `skills/<name>/` and use relative paths from `SKILL.md`:
+
+```
+references/refactor-patterns.md
+agents/rubysmithing-refactor.md
+```
+
+Never mix. A relative path from `skills/genai/SKILL.md` resolves to `skills/genai/references/`, not the plugin root.
 
 ---
 
@@ -69,7 +311,7 @@ bundle exec git-lint    # Validate commit message format
 
 ### SKILL.md Frontmatter
 
-Only two fields are supported:
+Two fields only:
 
 ```yaml
 ---
@@ -78,26 +320,11 @@ description: Third-person description of what the skill does and when to activat
 ---
 ```
 
-No other frontmatter fields. Description must be written in third person — it is injected into Claude's system prompt and point-of-view consistency matters for reliable activation.
+Description must be third-person — it is injected into Claude's system prompt and point-of-view consistency matters for reliable activation.
 
-### Shared vs Skill-Local Resources
+### Error Contract
 
-**Shared (plugin root):** Use for resources referenced by two or more skills. Reference via absolute path:
-
-```
-$CLAUDE_PLUGIN_ROOT/references/gem-registry.md
-$CLAUDE_PLUGIN_ROOT/scripts/context_cache.rb
-$CLAUDE_PLUGIN_ROOT/agents/rubysmithing-context.md
-```
-
-**Skill-local (inside `skills/<name>/`):** Use for resources exclusive to one skill. Reference via relative path from SKILL.md:
-
-```
-references/refactor-patterns.md
-agents/rubysmithing-refactor.md
-```
-
-Never mix: a relative path from `skills/genai/SKILL.md` that says `references/foo.md` resolves to `skills/genai/references/foo.md`, not the plugin root.
+Sub-agents return structured `[AGENT ERROR]` blocks rather than bare failure strings. The contract schema lives at `$CLAUDE_PLUGIN_ROOT/skills/plan/references/error-contract.md`. All agents reference it via this absolute path.
 
 ### SKILL.md Size
 
@@ -108,50 +335,34 @@ Keep each SKILL.md under 500 lines. Move detailed reference material to `referen
 1. Create `skills/<name>/SKILL.md` with `name` and `description` frontmatter.
 2. Add `skills/<name>/agents/<name>.md` if the skill dispatches an agent.
 3. Add `skills/<name>/references/` for skill-local reference docs.
-4. If the new skill's agent or references are needed by other skills, move them to the plugin root instead.
-5. Update `$CLAUDE_PLUGIN_ROOT/skills/plan/agents/rubysmithing-orchestrator.md` routing table to include the new skill.
-
-### Error Contract
-
-Sub-agents return structured `[AGENT ERROR]` blocks rather than bare failure strings. The contract schema lives at `skills/plan/references/error-contract.md`. All agents reference it via `$CLAUDE_PLUGIN_ROOT/skills/plan/references/error-contract.md`.
+4. If the skill's agent or references are needed by other skills, move them to the plugin root.
+5. Add a routing row to `agents/rubysmithing-orchestrator.md`.
+6. Add a delegation row to `skills/plan/SKILL.md`.
 
 ---
 
-## Convention Modes
+## Development Commands
 
-### Lite Mode
-Single-file output ≤~50 lines, stdlib only. No `dry-schema`, `async`, `circuit_breaker`. The `frozen_string_literal` comment is recommended but not enforced.
-
-### Standard Mode
-All other tasks. Full conventions required:
-
-- `# frozen_string_literal: true` as the first line of every file
-- Zeitwerk-compliant path ↔ class name mapping
-- `journald-logger` not `puts`
-- `Async { }` not `Thread.new`
-- `circuit_breaker` wrapping on external API calls
-- `module_function` not `extend self`
-
-Multi-file scaffold requests always trigger Standard Mode regardless of individual file line counts.
-
----
-
-## Gem API Cache
-
-The `context_cache.rb` script manages a SQLite database at `~/.rubysmithing/context_cache.db`. It is the shared prerequisite for all library-specific code generation.
+All commands run from `plugins/rubysmithing/`:
 
 ```bash
-# Check cache status for a gem
-ruby scripts/context_cache.rb fetch ruby_llm --json
+bundle install              # Install dependencies
 
-# Manually store a resolved entry
-ruby scripts/context_cache.rb store ruby_llm /crmne/ruby_llm '[".chat(...)"]' 'RubyLLM.chat'
+bundle exec rubocop         # Lint
+bundle exec rubocop -a      # Lint with autocorrect
 
-# List all cached gems
-ruby scripts/context_cache.rb list
+bundle exec rspec                              # Full test suite
+bundle exec rspec spec/path/to/file_spec.rb   # Single spec
 
-# Force a fresh lookup
-ruby scripts/context_cache.rb evict ruby_llm
+bundle exec git-lint        # Validate commit message format
 ```
 
-See `references/cache-cli.md` for full exit codes and `--json` output shapes. See `references/gem-registry.md` for the curated Context7 ID mapping covering ~40 gems in the stack.
+---
+
+## Contributing
+
+Contributions to skills, agents, and references are welcome. Open a pull request against the `development` branch. Run `bundle exec rubocop` and `bundle exec rspec` before submitting.
+
+## License
+
+MIT
