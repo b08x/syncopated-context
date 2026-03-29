@@ -35,7 +35,7 @@ Follow all steps in the skill exactly:
 
 Never rewrite without auditing first. Never truncate output. Never silently alter behavior.
 
-For compound prompts (e.g., "refactor this AND build a TUI for it"): handle the refactoring here, state that TUI scaffolding should be addressed with tui-engineer.
+For compound prompts (e.g., "refactor this AND build a TUI for it"): handle the refactoring here, state that TUI scaffolding should be addressed with ux-engineer.
 
 ## Do-and-Judge Retry Loop (SADD Integration)
 
