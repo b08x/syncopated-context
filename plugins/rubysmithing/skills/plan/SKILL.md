@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Convention-aware Ruby code generator for the terminal-native AI orchestration stack (dotenv, tty-config, zeitwerk, async, dry-schema, sequel, journald-logger, circuit_breaker, parallel, concurrent-ruby). Use for generating Ruby classes, modules, Rake tasks, config wiring, boot layer code, data pipelines, POROs, error class hierarchies, parallel processing workers, content parsers, and Gemfile decisions. Applies project-detected conventions (RuboCop, StandardRB, or community idioms) automatically. For single-file output under ~50 lines or pure stdlib work, activates Lite Mode — no dry-schema, no async, no circuit breakers. Multi-file scaffold requests always use Standard Mode regardless of per-file line count. Does NOT handle: LLM/AI/NLP code (genai), TUI interfaces (tui), refactoring (refactor), quality reports (sift), or YARD documentation (yardoc). Always defers to rubysmithing-context for gem API verification before generating library-specific code.
+description: Convention-aware Ruby code generator for the terminal-native AI orchestration stack (dotenv, tty-config, zeitwerk, async, dry-schema, sequel, journald-logger, circuit_breaker, parallel, concurrent-ruby). Use for generating Ruby classes, modules, Rake tasks, config wiring, boot layer code, data pipelines, POROs, error class hierarchies, parallel processing workers, content parsers, and Gemfile decisions. Applies project-detected conventions (RuboCop, StandardRB, or community idioms) automatically. For single-file output under ~50 lines or pure stdlib work, activates Lite Mode — no dry-schema, no async, no circuit breakers. Multi-file scaffold requests always use Standard Mode regardless of per-file line count. Does NOT handle: LLM/AI/NLP code (genai), TUI interfaces (tui), refactoring (refactor), quality reports (sift), or YARD documentation (yardoc). Always defers to context-engineer for gem API verification before generating library-specific code.
 ---
 
 # Rubysmithing
@@ -15,14 +15,20 @@ When a task falls outside this skill's scope, use the corresponding agent:
 
 | Task Type | Agent | When to Delegate |
 |:----------|:------|:-----------------|
-| Gem API verification | `rubysmithing-context` | Before generating code using non-stdlib gems |
-| Project scaffolding | `rubysmithing-scaffold` | New project initialization (rubysmith/gemsmith) |
-| LLM/AI/NLP code | `rubysmithing-genai` | Chatbots, RAG, embeddings, DSPy, MCP servers |
-| TUI interfaces | `rubysmithing-tui` | BubbleTea, Lipgloss, Huh, Gum, Bubbles |
-| Refactoring | `rubysmithing-refactor` | Convention fixes, Zeitwerk compliance |
-| QA assessment | `rubysmithing-report` | SIFT audits, design reviews |
-| YARD docs | `rubysmithing-yardoc` | Documentation generation |
-| Foreign codebase translation | `rubysmithing-deconstructor` | Translate Python/React/Go to Ruby blueprint |
+| Gem API verification | `context-engineer` | Before generating code using non-stdlib gems |
+| Project scaffolding | `platform-engineer` | New project initialization (rubysmith/gemsmith) |
+| LLM/AI/NLP code | `cognitive-architect` | Chatbots, RAG, embeddings, DSPy, MCP servers |
+| TUI interfaces | `ux-engineer` | BubbleTea, Lipgloss, Huh, Gum, Bubbles |
+| Refactoring | `maintenance-architect` | Convention fixes, Zeitwerk compliance |
+| QA assessment | `senior-qa-engineer` | SIFT audits, design reviews |
+| YARD docs | `developer-experience-engineer` | Documentation generation |
+| Foreign codebase translation | `senior-backend-architect` | Translate Python/React/Go to Ruby blueprint |
+| End-to-end diagnosis + fix | `/rubysmithing:diagnose` | Multi-step: diagnose then refactor |
+| SIFT audit + rubric scoring | `/rubysmithing:audit` | Multi-step: report → meta-judge → judge |
+| Foreign code → Ruby implementation | `/rubysmithing:translate` | Multi-step: deconstruct → context → implement |
+| Full documentation (YARD + guides) | `/rubysmithing:document` | Multi-step: yardoc → general docs |
+| Feature with gem context + QA gate | `/rubysmithing:flow` | Multi-step: context → implement → verify |
+| New project from concept to first task | `/rubysmithing:vibe` | Multi-step: ToT → stories → backlog → scaffold → implement |
 
 **Delegation pattern**: When delegating, invoke the agent using the Task tool
 with the appropriate agent name from `$CLAUDE_PLUGIN_ROOT/agents/`.
@@ -38,8 +44,8 @@ or a clearly small self-contained task.
 file line count. If the task would produce more than one file, apply Standard Mode.
 
 For **new project initialization** (rubysmith or gemsmith scaffold): delegate to
-`rubysmithing-scaffold`. This skill handles code within an existing project;
-rubysmithing-scaffold handles the project skeleton itself.
+`platform-engineer`. This skill handles code within an existing project;
+platform-engineer handles the project skeleton itself.
 
 In Lite Mode:
 
@@ -70,8 +76,8 @@ Always state which target was detected and from which artifact before generating
 Before writing any code that touches a gem:
 
 - Note which gems are involved
-- State: "Deferring to rubysmithing-context for [gem] API verification"
-- In practice, if rubysmithing-context is active in the session and has already
+- State: "Deferring to context-engineer for [gem] API verification"
+- In practice, if context-engineer is active in the session and has already
   resolved the gem, use the cached result directly
 
 Skip this step for: stdlib only, Lite Mode tasks, gems already resolved this session.

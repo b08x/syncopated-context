@@ -15,7 +15,7 @@ The plugin uses a **shared-root architecture** modeled after the sdd plugin patt
 ```
 plugins/rubysmithing/
 ├── .claude-plugin/plugin.json   # Plugin metadata and version (v2.0.0)
-├── agents/                      # Shared agents (context, genai, tui)
+├── agents/                      # All 13 agents (agentic-operations-lead, agentic-software-engineer, context-engineer, cognitive-architect, ux-engineer, platform-engineer, maintenance-architect, ruby-diagnostics-engineer, developer-experience-engineer, senior-qa-engineer, director-of-ai-risk, compliance-guardrail-agent, senior-backend-architect)
 ├── commands/                    # Shared commands (context)
 ├── references/                  # Shared references (gem-registry, cache-cli, genai-patterns, design-patterns, tui-patterns)
 ├── scripts/                     # Shared scripts (context_cache.rb — SQLite gem cache)

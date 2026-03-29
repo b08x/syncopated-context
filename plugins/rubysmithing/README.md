@@ -48,39 +48,39 @@ The suite runs thirteen specialized agents organized into five layers. Each agen
 
 | Agent | Role | Persona |
 |:------|:-----|:--------|
-| `rubysmithing-orchestrator` | Entry point; routing, convention detection, parallel dispatch | The Bureaucrat — decisive, strict |
+| `agentic-operations-lead` | Entry point; routing, convention detection, parallel dispatch | The Bureaucrat — decisive, strict |
 
 ### Generation & Production
 
 | Agent | Role | Persona |
 |:------|:-----|:--------|
-| `rubysmithing-main` | General Ruby code generation (Lite/Standard modes) | The Generalist — pragmatic, tireless |
-| `rubysmithing-genai` | AI/NLP component scaffolding | The Visionary — structured, modern |
-| `rubysmithing-tui` | Terminal UI scaffolding | The Aestheticist — design-oriented, state-obsessed |
-| `rubysmithing-scaffold` | Project initialization | The Future-Proof Visionary — foundational, optimistic |
-| `rubysmithing-context` | Gem API verification and SQLite caching | The Epistemic Verifier — skeptical, rigorous |
+| `agentic-software-engineer` | General Ruby code generation (Lite/Standard modes) | The Generalist — pragmatic, tireless |
+| `cognitive-architect` | AI/NLP component scaffolding | The Visionary — structured, modern |
+| `ux-engineer` | Terminal UI scaffolding | The Aestheticist — design-oriented, state-obsessed |
+| `platform-engineer` | Project initialization | The Future-Proof Visionary — foundational, optimistic |
+| `context-engineer` | Gem API verification and SQLite caching | The Epistemic Verifier — skeptical, rigorous |
 
 ### Diagnostic & Remediation
 
 | Agent | Role | Persona |
 |:------|:-----|:--------|
-| `rubysmithing-analyse` | Root-cause analysis, Gemba Walk, Muda identification | The Stealth Debugger — inquisitive, paranoid |
-| `rubysmithing-refactor` | Convention-targeted rewrites, Zeitwerk compliance, do-and-judge loops | The Code Janitor — pedantic, relentless |
+| `ruby-diagnostics-engineer` | Root-cause analysis, Gemba Walk, Muda identification | The Stealth Debugger — inquisitive, paranoid |
+| `maintenance-architect` | Convention-targeted rewrites, Zeitwerk compliance, do-and-judge loops | The Code Janitor — pedantic, relentless |
 
 ### Governance & Evaluation
 
 | Agent | Role | Persona |
 |:------|:-----|:--------|
-| `rubysmithing-meta-judge` | Pre-evaluation YAML rubric specification | The Specifier — risk-averse, rigid |
-| `rubysmithing-judge` | Rubric application with file:line evidence, PASS/FAIL verdict | The Evaluator — punitive, strict |
-| `rubysmithing-report` | SIFT Protocol QA reports, architectural reviews | The Pragmatist — analytical, holistic |
+| `director-of-ai-risk` | Pre-evaluation YAML rubric specification | The Specifier — risk-averse, rigid |
+| `compliance-guardrail-agent` | Rubric application with file:line evidence, PASS/FAIL verdict | The Evaluator — punitive, strict |
+| `senior-qa-engineer` | SIFT Protocol QA reports, architectural reviews | The Pragmatist — analytical, holistic |
 
 ### Documentation & Translation
 
 | Agent | Role | Persona |
 |:------|:-----|:--------|
-| `rubysmithing-yardoc` | YARD documentation via AST analysis and type inference | The Semantic Inferencer — academic, precise |
-| `rubysmithing-deconstructor` | Foreign codebase → Ruby OOP blueprint (Python, React, Go) | "Other Steve" — weary, adversarial, anti-slop |
+| `developer-experience-engineer` | YARD documentation via AST analysis and type inference | The Semantic Inferencer — academic, precise |
+| `senior-backend-architect` | Foreign codebase → Ruby OOP blueprint (Python, React, Go) | "Other Steve" — weary, adversarial, anti-slop |
 
 The orchestrator never implements code directly. The meta-judge never evaluates artifacts. The deconstructor never writes implementation. Separation of powers is structural.
 
@@ -134,7 +134,7 @@ bundle install
 /rubysmithing:plan Write a Sequel-backed data pipeline with async processing and circuit breaker wrapping
 ```
 
-The orchestrator detects conventions, flags non-stdlib gems, runs the context agent for API verification, then delegates to `rubysmithing-main`.
+The orchestrator detects conventions, flags non-stdlib gems, runs the context agent for API verification, then delegates to `agentic-software-engineer`.
 
 ### Analysis
 
@@ -172,7 +172,7 @@ Full SIFT V1.0 report: eight sections, Toulmin evidence anchoring, optional SADD
 /rubysmithing:tui Build a BubbleTea monitoring dashboard for my RAG pipeline metrics
 ```
 
-Runs `rubysmithing-context` as a prerequisite, then generates the full BubbleTea application skeleton: `app.rb`, screen definitions, `Components::Base` adapters, Lipgloss styles.
+Runs `context-engineer` as a prerequisite, then generates the full BubbleTea application skeleton: `app.rb`, screen definitions, `Components::Base` adapters, Lipgloss styles.
 
 ### Foreign Codebase Translation
 
@@ -180,7 +180,7 @@ Runs `rubysmithing-context` as a prerequisite, then generates the full BubbleTea
 /rubysmithing:plan Translate this Python FastAPI service to Ruby
 ```
 
-Routes to `rubysmithing-deconstructor`: surveys the source, maps paradigms (decorators → `Module#prepend`, dataclasses → `Struct.new(keyword_init: true)`), produces a Zeitwerk-compliant Blueprint, Object Graph, and Translation Map with confidence ratings.
+Routes to `senior-backend-architect`: surveys the source, maps paradigms (decorators → `Module#prepend`, dataclasses → `Struct.new(keyword_init: true)`), produces a Zeitwerk-compliant Blueprint, Object Graph, and Translation Map with confidence ratings.
 
 ---
 
@@ -247,19 +247,19 @@ See `references/cache-cli.md` for full exit codes and `--json` output shapes. Se
 plugins/rubysmithing/
 ├── .claude-plugin/plugin.json   # Plugin metadata (name, version, description)
 ├── agents/                      # All 13 agents — shared at plugin root
-│   ├── rubysmithing-orchestrator.md
-│   ├── rubysmithing-main.md
-│   ├── rubysmithing-context.md
-│   ├── rubysmithing-genai.md
-│   ├── rubysmithing-tui.md
-│   ├── rubysmithing-scaffold.md
-│   ├── rubysmithing-analyse.md
-│   ├── rubysmithing-refactor.md
-│   ├── rubysmithing-meta-judge.md
-│   ├── rubysmithing-judge.md
-│   ├── rubysmithing-report.md
-│   ├── rubysmithing-yardoc.md
-│   └── rubysmithing-deconstructor.md
+│   ├── agentic-operations-lead.md
+│   ├── agentic-software-engineer.md
+│   ├── context-engineer.md
+│   ├── cognitive-architect.md
+│   ├── ux-engineer.md
+│   ├── platform-engineer.md
+│   ├── ruby-diagnostics-engineer.md
+│   ├── maintenance-architect.md
+│   ├── director-of-ai-risk.md
+│   ├── compliance-guardrail-agent.md
+│   ├── senior-qa-engineer.md
+│   ├── developer-experience-engineer.md
+│   └── senior-backend-architect.md
 ├── commands/                    # Shared commands — context cache management
 ├── references/                  # Shared reference docs
 │   ├── gem-registry.md          # Context7 ID → gem mapping with architectural roles
@@ -291,7 +291,7 @@ plugins/rubysmithing/
 Resources used by two or more skills live at the plugin root and are referenced via absolute path:
 
 ```
-$CLAUDE_PLUGIN_ROOT/agents/rubysmithing-context.md
+$CLAUDE_PLUGIN_ROOT/agents/context-engineer.md
 $CLAUDE_PLUGIN_ROOT/references/gem-registry.md
 $CLAUDE_PLUGIN_ROOT/scripts/context_cache.rb
 ```
@@ -300,7 +300,7 @@ Resources exclusive to one skill stay inside `skills/<name>/` and use relative p
 
 ```
 references/refactor-patterns.md
-agents/rubysmithing-refactor.md
+agents/maintenance-architect.md
 ```
 
 Never mix. A relative path from `skills/genai/SKILL.md` resolves to `skills/genai/references/`, not the plugin root.
@@ -336,7 +336,7 @@ Keep each SKILL.md under 500 lines. Move detailed reference material to `referen
 2. Add `skills/<name>/agents/<name>.md` if the skill dispatches an agent.
 3. Add `skills/<name>/references/` for skill-local reference docs.
 4. If the skill's agent or references are needed by other skills, move them to the plugin root.
-5. Add a routing row to `agents/rubysmithing-orchestrator.md`.
+5. Add a routing row to `agents/agentic-operations-lead.md`.
 6. Add a delegation row to `skills/plan/SKILL.md`.
 
 ---
