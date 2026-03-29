@@ -37,6 +37,20 @@ Dispatch the `platform-engineer` with:
 - Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/vibe/step-4-scaffold.md`
 - Project Charter: from Step 1
 
+## Step 4b — Data Foundation (conditional)
+
+**Only run this step if** the Project Charter's `Ruby gem dependencies` field lists any of: `sequel`, `pgvector`, `ohm`, `ruby-spacy`, `informers`, `ruby_llm`, `ruby-wordnet`, `pragmatic_segmenter`.
+
+If the condition is met, dispatch `agentic-data-engineer` with:
+
+- Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/vibe/step-4b-data-schema.md`
+- Project Charter: from Step 1
+- Scaffolded project path: from Step 4
+
+Wait for the data foundation confirmation before proceeding to Step 5.
+
+If the condition is not met, skip directly to Step 5.
+
 ## Step 5 — First Task
 
 Dispatch the `agentic-software-engineer` with:

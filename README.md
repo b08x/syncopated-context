@@ -1,23 +1,21 @@
-<div align="center">
+# syncopated-context
 
-# rubysmithing
-
-Convention-aware Ruby development suite for Claude Code — orchestrated agents for idiomatic code generation, TUI scaffolding, AI/NLP components, refactoring, QA auditing, and YARD documentation.
+Claude Code plugin marketplace distribution of **rubysmithing** — a convention-aware Ruby development suite featuring thirteen specialized agents for code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, YARD documentation, and foreign codebase translation.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](.claude-plugin/marketplace.json)
-
-</div>
+[![Version](https://img.shields.io/badge/version-2.1.0-green.svg)](.claude-plugin/marketplace.json)
+[![Ruby](https://img.shields.io/badge/ruby-3.4.4-red)](.tool-versions)
 
 ---
 
 ## Features
 
 - **Adaptive convention detection** — reads `.rubocop.yml`, `standard` in Gemfile, or `.rubysmith` config; falls back to community idioms. Convention target is stated before every generation.
-- **Lite / Standard mode switching** — single-file stdlib scripts get lean output; multi-file or gem-touching tasks automatically activate full Standard Mode with Zeitwerk compliance, `frozen_string_literal`, and structured logging.
+- **Lite / Standard mode switching** — single-file stdlib scripts get lean output; multi-file or gem-touching tasks activate full Standard Mode with Zeitwerk compliance, `frozen_string_literal`, and structured logging.
 - **Shared gem API verification** — the `context` agent resolves method signatures via Context7 MCP and caches results in SQLite across sessions before any library-touching code is written.
 - **Terminal UI scaffolding** — `tui` generates BubbleTea / Lipgloss / Huh interfaces from a validated skeleton, with keyboard handling and component hierarchy wired up.
 - **LLM and RAG pipelines** — `genai` covers chatbots, tool-calling agents, vector search, DSPy reasoning modules, and MCP server scaffolding.
+- **Schema design workflow** — `data-engineer` runs SADD tree-of-thoughts for schema authoring: context gathering, conceptual design, and verification.
 - **SIFT Protocol QA reports** — `sift` runs structured audits against a weighted rubric; findings are filed with `file:line` evidence citations.
 - **YARD documentation with type inference** — `yardoc` generates `@param`, `@return`, and `@example` tags for existing Ruby files without requiring manual annotation.
 - **Root-cause analysis** — `analyse` traces bugs backward through the call chain using Gemba Walk, Muda waste mapping, and Five Whys before any fix is attempted.
@@ -27,7 +25,7 @@ Convention-aware Ruby development suite for Claude Code — orchestrated agents 
 ## Installation
 
 <details>
-<summary>Claude Code — Plugin Marketplace</summary>
+<summary>Claude Code — Plugin Marketplace (Recommended)</summary>
 
 ```bash
 claude plugin install syncopated-context
@@ -69,15 +67,16 @@ Invoke via the `rubysmithing` skill prefix in any Claude Code session. The `plan
 ### Skill entry points
 
 ```
-rubysmithing:plan      # Hub — routes all Ruby generation tasks
-rubysmithing:analyse   # Static analysis: dead code, muda, root-cause tracing
-rubysmithing:context   # Gem API verification (Context7 + SQLite cache)
-rubysmithing:genai     # LLM, RAG, embeddings, DSPy, MCP servers
-rubysmithing:refactor  # Convention fixes, Zeitwerk compliance rewrites
-rubysmithing:sift      # SIFT Protocol QA audits with weighted rubric
-rubysmithing:scaffold  # New project init via rubysmith / gemsmith
-rubysmithing:tui       # BubbleTea / Lipgloss / Huh terminal UI
-rubysmithing:yardoc    # YARD docs with type inference
+rubysmithing:plan           # Hub — routes all Ruby generation tasks
+rubysmithing:analyse        # Static analysis: dead code, muda, root-cause tracing
+rubysmithing:context        # Gem API verification (Context7 + SQLite cache)
+rubysmithing:data-engineer  # Schema design via SADD tree-of-thoughts
+rubysmithing:genai          # LLM, RAG, embeddings, DSPy, MCP servers
+rubysmithing:refactor       # Convention fixes, Zeitwerk compliance rewrites
+rubysmithing:sift           # SIFT Protocol QA audits with weighted rubric
+rubysmithing:scaffold       # New project init via rubysmith / gemsmith
+rubysmithing:tui            # BubbleTea / Lipgloss / Huh terminal UI
+rubysmithing:yardoc         # YARD docs with type inference
 ```
 
 ### Examples
@@ -85,6 +84,9 @@ rubysmithing:yardoc    # YARD docs with type inference
 ```
 # Generate a PORO with circuit-breaker-wrapped API calls
 rubysmithing:plan — build a DataFetcher class that hits the GitHub API
+
+# Design a database schema
+rubysmithing:data-engineer — schema for a multi-tenant SaaS with users, orgs, billing
 
 # Scaffold a new gem
 rubysmithing:scaffold — create a new gem called my_tool
@@ -140,20 +142,23 @@ The plugin uses a **shared-root pattern**: agents, references, and scripts used 
 
 ```
 rubysmithing (plugin root)
-├── agents/           — shared: rubysmithing-context, rubysmithing-genai, rubysmithing-tui
+├── agents/           — shared: 13 agents including context, genai, tui, data-engineer
+├── commands/         — workflow commands: context, flow, schema, vibe
 ├── references/       — shared: gem-registry, cache-cli, genai-patterns, design-patterns, tui-patterns
 ├── scripts/          — shared: context_cache.rb (SQLite gem API cache)
+├── tasks/            — workflow task chains: schema (SADD), vibe (analysis)
 ├── assets/skeleton/  — shared: TUI project skeleton
 └── skills/
     ├── plan/         → orchestrator + error contract + convention references
-    ├── analyse/      → Gemba Walk, Muda, Root-Cause Tracing, Five Whys
-    ├── context/      → SKILL.md only (agent at root)
-    ├── genai/        → SKILL.md only (agent at root)
-    ├── refactor/     → convention-targeted rewrites
-    ├── scaffold/     → rubysmith / gemsmith project init
+    ├── analyse/       → Gemba Walk, Muda, Root-Cause Tracing, Five Whys
+    ├── context/       → SKILL.md only (agent at root)
+    ├── data-engineer/ → SKILL.md + SADD task chain references
+    ├── genai/         → SKILL.md only (agent at root)
+    ├── refactor/      → convention-targeted rewrites
+    ├── scaffold/      → rubysmith / gemsmith project init
     ├── sift/         → SIFT Protocol meta-judge + judge
-    ├── tui/          → SKILL.md only (agent + assets at root)
-    └── yardoc/       → YARD docs with @param/@return inference
+    ├── tui/           → SKILL.md only (agent + assets at root)
+    └── yardoc/        → YARD docs with @param/@return inference
 ```
 
 Hub-to-spoke delegation uses the Agent tool. Shared resources are referenced via `$CLAUDE_PLUGIN_ROOT/agents/`, `$CLAUDE_PLUGIN_ROOT/references/`, and `$CLAUDE_PLUGIN_ROOT/scripts/` so every skill can access them without path duplication.

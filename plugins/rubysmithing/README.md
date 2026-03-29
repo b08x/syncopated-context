@@ -1,13 +1,10 @@
-<div align="center">
-
 # rubysmithing
 
 Convention-aware Ruby development suite for Claude Code — thirteen specialized agents covering code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, YARD documentation, and foreign codebase translation.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Ruby](https://img.shields.io/badge/ruby-3.4.4-red)
-
-</div>
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ---
 
@@ -16,7 +13,7 @@ Convention-aware Ruby development suite for Claude Code — thirteen specialized
 - **Convention-locked code generation** — detects `.rubocop.yml`, `standard` in Gemfile, or `.rubysmith` presets automatically; every generated file is calibrated to the detected target
 - **Dual execution modes** — Lite Mode for stdlib-only scripts under 50 lines; Standard Mode for the full production stack (`frozen_string_literal`, Zeitwerk, `Async {}`, `circuit_breaker`, `journald-logger`)
 - **Verified gem API resolution** — the Context agent resolves live method signatures via Context7 MCP before any library-specific code is written, with SQLite-backed caching that survives session restarts
-- **Parallel agent dispatch** — compound requests (e.g., "refactor this RAG pipeline and build a TUI for it") are decomposed and dispatched to independent agents concurrently
+- **Parallel agent dispatch** — compound requests decompose and dispatch to independent agents concurrently
 - **Closed-loop evaluation** — the Meta-Judge generates rubric specs before refactoring begins; the Judge evaluates the output against those specs with file:line evidence; the Refactor agent retries until the score passes
 - **Structured diagnostic framework** — the Analyse agent applies Gemba Walk, Muda Analysis, Root-Cause Tracing, or Five Whys depending on the problem type; findings persist to a scratchpad for downstream handoff
 - **Foreign codebase translation** — the Deconstructor produces Zeitwerk-compliant Ruby blueprints from Python, React, and Go sources, with explicit GIL and GC impact notes
@@ -37,6 +34,7 @@ Convention-aware Ruby development suite for Claude Code — thirteen specialized
 | `genai` | LLM, RAG, chatbot, DSPy, MCP server, embeddings, pgvector | AI/NLP component scaffolding — ruby_llm, dspy.rb, fast-mcp, pgvector+sequel pipelines |
 | `tui` | BubbleTea, Lipgloss, Huh, Gum, NTCharts, "terminal UI" | Terminal UI scaffolding using the Ruby Charm/Bubble ecosystem |
 | `context` | Prerequisite when non-stdlib gems are in scope | Gem API verification via Context7 MCP; SQLite-cached results with graceful degradation |
+| `data-engineer` | Schema design, data modeling, SQL pipelines | SADD tree-of-thoughts for schema authoring with context, design, and verification steps |
 
 ---
 
@@ -109,6 +107,7 @@ After installation, invoke any skill by name:
 /rubysmithing:genai
 /rubysmithing:tui
 /rubysmithing:context
+/rubysmithing:data-engineer
 ```
 
 </details>
@@ -173,6 +172,14 @@ Full SIFT V1.0 report: eight sections, Toulmin evidence anchoring, optional SADD
 ```
 
 Runs `context-engineer` as a prerequisite, then generates the full BubbleTea application skeleton: `app.rb`, screen definitions, `Components::Base` adapters, Lipgloss styles.
+
+### Schema Design
+
+```
+/rubysmithing:schema Design a schema for a multi-tenant SaaS with users, organizations, and billing
+```
+
+SADD tree-of-thoughts workflow: context gathering → conceptual design → verification against requirements.
 
 ### Foreign Codebase Translation
 
@@ -259,22 +266,31 @@ plugins/rubysmithing/
 │   ├── compliance-guardrail-agent.md
 │   ├── senior-qa-engineer.md
 │   ├── developer-experience-engineer.md
+│   ├── agentic-data-engineer.md
 │   └── senior-backend-architect.md
-├── commands/                    # Shared commands — context cache management
+├── commands/                    # Workflow commands
+│   ├── context.md
+│   ├── flow.md
+│   ├── schema.md
+│   └── vibe.md
 ├── references/                  # Shared reference docs
 │   ├── gem-registry.md          # Context7 ID → gem mapping with architectural roles
 │   ├── cache-cli.md             # context_cache.rb CLI reference
-│   ├── genai-patterns.md        # Verified AI/NLP implementation patterns
+│   ├── genai-patterns.md       # Verified AI/NLP implementation patterns
 │   ├── design-patterns.md       # TUI layout paradigms and design system
-│   └── tui-patterns.md          # Bubble ecosystem component patterns
+│   └── tui-patterns.md         # Bubble ecosystem component patterns
 ├── scripts/
 │   └── context_cache.rb         # SQLite-backed gem API cache CLI
+├── tasks/                       # Workflow task chains
+│   ├── schema/                  # SADD schema workflow steps
+│   └── vibe/                    # Vibe analysis task steps
 ├── assets/
 │   └── skeleton/                # TUI project skeleton (copied per scaffold)
 ├── skills/
 │   ├── plan/                    # Hub orchestrator; error-contract.md + conventions
 │   ├── analyse/                 # Methods, scratchpad scripts
 │   ├── context/                 # SKILL.md only — agent and refs at plugin root
+│   ├── data-engineer/           # SKILL.md + task chain references
 │   ├── genai/                   # SKILL.md only — agent and refs at plugin root
 │   ├── refactor/                # Refactor patterns, do-and-judge integration
 │   ├── scaffold/                # scaffold-patterns.md

@@ -1,5 +1,5 @@
 ---
-description: Implement a feature end-to-end. Verifies gem APIs (context-engineer) → implements (agentic-software-engineer) → quality gate (senior-qa-engineer).
+description: Implement a feature end-to-end. Verifies gem APIs (context-engineer) → implements (agentic-software-engineer or agentic-data-engineer based on feature type) → quality gate (senior-qa-engineer).
 argument-hint: "<feature description>"
 allowed-tools: ["Read", "Grep", "Glob", "Write", "Bash", "Agent"]
 ---
@@ -17,9 +17,13 @@ If Step 1 returns `stdlib-only`, skip to Step 2 directly without gem context.
 
 ## Step 2 — Implementation
 
-Dispatch the `agentic-software-engineer` with:
+**Route by feature type:**
 
-- Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/flow/step-2-implement.md`
+- If the feature is primarily data infrastructure (schema design, migration, chunking pipeline, embedding strategy, RAG retriever, knowledge graph, pgvector, Ohm model, SFL metadata) → dispatch `agentic-data-engineer` with task instructions `$CLAUDE_PLUGIN_ROOT/tasks/schema/step-2-design.md`
+- Otherwise → dispatch `agentic-software-engineer` with task instructions `$CLAUDE_PLUGIN_ROOT/tasks/flow/step-2-implement.md`
+
+Pass to whichever agent is dispatched:
+
 - Feature description: from arguments
 - Verified Context Block (or stdlib-only signal): from Step 1
 
