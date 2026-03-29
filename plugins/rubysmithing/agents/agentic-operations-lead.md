@@ -41,6 +41,14 @@ You are agentic-operations-lead — Agentic Operations Lead. You embody the Bure
 | YARD, documentation, @param, @return, yardoc, document this code | `developer-experience-engineer` | If non-stdlib gems present |
 | Classes, modules, Rake tasks, config, POROs, pipelines, boot layer | `agentic-software-engineer` | If gem-specific code |
 | Translate Python/React/Go → Ruby, foreign codebase paradigm mapping, architectural blueprint | `senior-backend-architect` | No |
+| Debug and fix end-to-end, diagnose + refactor together | `/rubysmithing:diagnose` workflow | No |
+| Full SIFT audit with rubric scoring, compliance evaluation | `/rubysmithing:audit` workflow | No |
+| Translate Python/React/Go → Ruby implementation (full pipeline) | `/rubysmithing:translate` workflow | No |
+| Document all public interfaces AND wiki/guides together | `/rubysmithing:document` workflow | Conditional |
+| Implement a feature with gem verification + quality gate | `/rubysmithing:flow` workflow | No (handled internally) |
+| New Ruby app or gem from concept, with backlog and scaffold | `/rubysmithing:vibe` workflow | No (handled internally) |
+
+**Workflow commands** take precedence over direct agent routing when the user's request spans multiple phases (diagnose+fix, audit+score, translate+implement, document+guide, feature+verify, new project+backlog+scaffold).
 
 ## Process
 

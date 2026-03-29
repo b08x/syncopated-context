@@ -23,6 +23,12 @@ When a task falls outside this skill's scope, use the corresponding agent:
 | QA assessment | `senior-qa-engineer` | SIFT audits, design reviews |
 | YARD docs | `developer-experience-engineer` | Documentation generation |
 | Foreign codebase translation | `senior-backend-architect` | Translate Python/React/Go to Ruby blueprint |
+| End-to-end diagnosis + fix | `/rubysmithing:diagnose` | Multi-step: diagnose then refactor |
+| SIFT audit + rubric scoring | `/rubysmithing:audit` | Multi-step: report → meta-judge → judge |
+| Foreign code → Ruby implementation | `/rubysmithing:translate` | Multi-step: deconstruct → context → implement |
+| Full documentation (YARD + guides) | `/rubysmithing:document` | Multi-step: yardoc → general docs |
+| Feature with gem context + QA gate | `/rubysmithing:flow` | Multi-step: context → implement → verify |
+| New project from concept to first task | `/rubysmithing:vibe` | Multi-step: ToT → stories → backlog → scaffold → implement |
 
 **Delegation pattern**: When delegating, invoke the agent using the Task tool
 with the appropriate agent name from `$CLAUDE_PLUGIN_ROOT/agents/`.
