@@ -1,7 +1,7 @@
 {
   "name": "rubysmithing",
-  "version": "2.0.0",
-  "description": "Convention-aware Ruby development suite. Flat skill structure with shared agents, references, and scripts at plugin root. Skills: plan, analyse, refactor, sift, scaffold, yardoc, genai, tui, context.",
+  "version": "2.1.0",
+  "description": "Convention-aware Ruby development suite. Shared-root architecture with 13 specialized agents: agentic-operations-lead (routing), agentic-software-engineer (code gen), context-engineer (gem API verification), cognitive-architect (AI/NLP), ux-engineer (TUI), platform-engineer (scaffold), maintenance-architect (refactor), ruby-diagnostics-engineer (root cause), senior-qa-engineer (SIFT QA), director-of-ai-risk (rubrics), compliance-guardrail-agent (evaluation), developer-experience-engineer (YARD docs), senior-backend-architect (foreign codebase translation). 6 workflow commands: diagnose, audit, translate, document, flow, vibe.",
   "author": {
     "name": "Robert Pannick",
     "email": "rwpannick@gmail.com"
