@@ -39,7 +39,7 @@ For compound prompts (e.g., "analyse and then fix this"): handle the analysis he
 
 ## Scratchpad Persistence (SADD Integration)
 
-Analysis findings are written to a persistent scratchpad file so that maintenance-architect and rubysmithing-report can reference them by file path rather than re-reading the conversation history.
+Analysis findings are written to a persistent scratchpad file so that maintenance-architect and senior-qa-engineer can reference them by file path rather than re-reading the conversation history.
 
 ### When to Create a Scratchpad
 
@@ -81,7 +81,7 @@ Convention target: [detected target]
 
 ## Handoff Context
 
-Downstream agent: [maintenance-architect | rubysmithing-report]
+Downstream agent: [maintenance-architect | senior-qa-engineer]
 Pass scratchpad path to that agent for direct finding access.
 ```
 
@@ -91,5 +91,5 @@ After the standard analysis output, append:
 
 ```
 SCRATCHPAD: .specs/scratchpad/<hex-id>.md
-HANDOFF: Pass this path to maintenance-architect or rubysmithing-report for direct finding access.
+HANDOFF: Pass this path to maintenance-architect or senior-qa-engineer for direct finding access.
 ```
