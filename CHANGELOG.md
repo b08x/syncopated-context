@@ -29,6 +29,7 @@
 
 - Update agent names in CLAUDE.md, README files
 - Restore agents/README.md rename reference table
+- Update READMEs via readme-generator skill
 
 ### ⚙️ Miscellaneous Tasks
 
