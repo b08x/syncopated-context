@@ -1,4 +1,4 @@
-## [2.1.0] - 2026-03-29
+## [2.1.0] - 2026-03-30
 
 ### 🚀 Features
 
@@ -10,6 +10,8 @@
 - Add /rubysmithing:vibe workflow command with SADD tree-of-thoughts
 - Add workflow command routing to orchestrator and plan SKILL.md
 - Rename 13 agents to job-function names and add 6 workflow commands (v2.1.0)
+- Update READMEs via readme-generator skill and sync data-engineer docs
+- *(data-engineer)* Add kreuzberg document ingestion and RRF hybrid search
 
 ### 🐛 Bug Fixes
 
@@ -27,6 +29,7 @@
 
 - Update agent names in CLAUDE.md, README files
 - Restore agents/README.md rename reference table
+- Update READMEs via readme-generator skill
 
 ### ⚙️ Miscellaneous Tasks
 

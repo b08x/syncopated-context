@@ -1,21 +1,25 @@
+<div align="center">
+
 # rubysmithing
 
-Convention-aware Ruby development suite for Claude Code — thirteen specialized agents covering code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, YARD documentation, and foreign codebase translation.
+Convention-aware Ruby development suite for Claude Code — thirteen specialized agents covering code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, and foreign codebase translation.
 
 ![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Ruby](https://img.shields.io/badge/ruby-3.4.4-red)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
+</div>
+
 ---
 
 ## Features
 
-- **Convention-locked code generation** — detects `.rubocop.yml`, `standard` in Gemfile, or `.rubysmith` presets automatically; every generated file is calibrated to the detected target
-- **Dual execution modes** — Lite Mode for stdlib-only scripts under 50 lines; Standard Mode for the full production stack (`frozen_string_literal`, Zeitwerk, `Async {}`, `circuit_breaker`, `journald-logger`)
-- **Verified gem API resolution** — the Context agent resolves live method signatures via Context7 MCP before any library-specific code is written, with SQLite-backed caching that survives session restarts
+- **Convention-locked code generation** — detects `.rubocop.yml`, `standard` in Gemfile, or `.rubysmith` presets automatically; every generated file calibrates to the detected target
+- **Dual execution modes** — Lite Mode for stdlib-only scripts under 50 lines; Standard Mode for the full production stack with `frozen_string_literal`, Zeitwerk, `Async {}`, and `circuit_breaker`
+- **Verified gem API resolution** — the Context agent resolves live method signatures via Context7 MCP before library-specific code generation, with SQLite-backed caching across session restarts
 - **Parallel agent dispatch** — compound requests decompose and dispatch to independent agents concurrently
-- **Closed-loop evaluation** — the Meta-Judge generates rubric specs before refactoring begins; the Judge evaluates the output against those specs with file:line evidence; the Refactor agent retries until the score passes
-- **Structured diagnostic framework** — the Analyse agent applies Gemba Walk, Muda Analysis, Root-Cause Tracing, or Five Whys depending on the problem type; findings persist to a scratchpad for downstream handoff
+- **Closed-loop evaluation** — the Meta-Judge generates rubric specs before refactoring; the Judge evaluates output against those specs with file:line evidence; the Refactor agent retries until scores pass
+- **Structured diagnostic framework** — the Analyse agent applies Gemba Walk, Muda Analysis, Root-Cause Tracing, or Five Whys depending on problem type; findings persist to a scratchpad for downstream handoff
 - **Foreign codebase translation** — the Deconstructor produces Zeitwerk-compliant Ruby blueprints from Python, React, and Go sources, with explicit GIL and GC impact notes
 - **Full SIFT QA reporting** — eight-section quality assessments anchored to the Toulmin evidence framework, with optional SADD-integrated verification footer
 
@@ -86,10 +90,8 @@ The orchestrator never implements code directly. The meta-judge never evaluates 
 
 ## Installation
 
-The plugin is distributed via the Claude Code plugin marketplace.
-
 <details>
-<summary>Claude Code — Marketplace Install</summary>
+<summary>Claude Code — Marketplace Install (Recommended)</summary>
 
 ```bash
 claude plugin install rubysmithing
@@ -97,7 +99,7 @@ claude plugin install rubysmithing
 
 After installation, invoke any skill by name:
 
-```
+```bash
 /rubysmithing:plan
 /rubysmithing:analyse
 /rubysmithing:refactor
@@ -127,63 +129,81 @@ bundle install
 
 ## Usage
 
-### Code Generation
+### Basic Invocation
 
+```bash
+# Convention-aware code generation
+/rubysmithing:plan Write a Sequel-backed data pipeline with async processing
+
+# Root cause analysis
+/rubysmithing:analyse NameError: uninitialized constant MyApp::Data::Processor
+
+# Convention-targeted refactoring
+/rubysmithing:refactor lib/app/processor.rb
+
+# Quality assessment
+/rubysmithing:sift Review this project and identify issues
 ```
+
+### Examples
+
+#### Code Generation
+
+```bash
 /rubysmithing:plan Write a Sequel-backed data pipeline with async processing and circuit breaker wrapping
 ```
 
 The orchestrator detects conventions, flags non-stdlib gems, runs the context agent for API verification, then delegates to `agentic-software-engineer`.
 
-### Analysis
+#### Analysis & Diagnostics
 
-```
+```bash
 /rubysmithing:analyse I keep getting NameError: uninitialized constant MyApp::Data::Processor
 ```
 
 The analyse agent traces the Zeitwerk load path, identifies the constant → file path mismatch, and keys the finding to a pattern in `refactor-patterns.md` for handoff.
 
-```
+```bash
 /rubysmithing:analyse This codebase feels bloated — half the methods seem unused
 ```
 
 Triggers Muda Analysis: maps seven Ruby waste types (dead methods, unused gems, over-processing, stale flags) across the target directory.
 
-### Refactoring
+#### Refactoring
 
-```
+```bash
 /rubysmithing:refactor lib/app/processor.rb
 ```
 
 Convention scan → AST-targeted rewrites → optional do-and-judge retry loop for critical files.
 
-### QA Report
+#### QA Assessment
 
-```
+```bash
 /rubysmithing:sift Review this project and tell me what's wrong
 ```
 
 Full SIFT V1.0 report: eight sections, Toulmin evidence anchoring, optional SADD verification footer.
 
-### TUI Scaffolding
+#### TUI Scaffolding
 
-```
+```bash
 /rubysmithing:tui Build a BubbleTea monitoring dashboard for my RAG pipeline metrics
 ```
 
 Runs `context-engineer` as a prerequisite, then generates the full BubbleTea application skeleton: `app.rb`, screen definitions, `Components::Base` adapters, Lipgloss styles.
 
-### Schema Design
+#### Schema Design
 
-```
-/rubysmithing:schema Design a schema for a multi-tenant SaaS with users, organizations, and billing
+```bash
+/rubysmithing:data-engineer Design a schema for a multi-tenant SaaS with users, organizations, and billing
 ```
 
 SADD tree-of-thoughts workflow: context gathering → conceptual design → verification against requirements.
 
-### Foreign Codebase Translation
+#### Foreign Codebase Translation
 
-```
+```bash
 /rubysmithing:plan Translate this Python FastAPI service to Ruby
 ```
 
@@ -244,7 +264,7 @@ ruby scripts/context_cache.rb evict ruby_llm
 
 Degradation order: fresh cache → stale cache (with `#stale-cache` annotation) → unverified fallback (with `#WARNING: Unverified API Syntax` comments). The cache never blocks code generation; it annotates uncertainty instead.
 
-See `references/cache-cli.md` for full exit codes and `--json` output shapes. See `references/gem-registry.md` for the curated Context7 ID mapping covering ~40 gems in the stack.
+> **📖 Full Documentation:** See `references/cache-cli.md` for complete exit codes and `--json` output shapes. See `references/gem-registry.md` for the curated Context7 ID mapping covering ~40 gems in the stack.
 
 ---
 
