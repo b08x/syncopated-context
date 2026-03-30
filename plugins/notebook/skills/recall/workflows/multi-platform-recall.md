@@ -110,7 +110,7 @@ def extract_claude_sessions(date_range):
 
 def extract_hermes_sessions(date_range):
     """Extract Hermes sessions via CLI export."""
-    cmd = f"hermes sessions export --format jsonl --days {date_range['days']}"
+    cmd = "hermes sessions export -"
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     return parse_sessions_jsonl(result.stdout)
 

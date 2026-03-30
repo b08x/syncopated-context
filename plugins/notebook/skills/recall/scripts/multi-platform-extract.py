@@ -28,8 +28,15 @@ from typing import Dict, List, Optional, Any
 class MultiPlatformExtractor:
     """Extract sessions from multiple AI platforms with correlation."""
 
+    # Decision thresholds for ck-search indexing
+    SESSION_SIZE_ESTIMATE_KB = 2  # Avg session size estimate
+    LARGE_SESSION_COUNT = 50       # Above this → auto-index
+    LONG_DATE_RANGE_DAYS = 7       # Above this → auto-index
+    TOPIC_SEARCH_THRESHOLD = 3     # Below this many words, treat as topic
+
     def __init__(self):
         self.platforms = ['claude', 'hermes', 'gemini', 'opencode']
+        self.default_index_dir = Path.home() / '.recall-index'
 
     def extract_sessions(self, platforms: List[str], date_range: Dict,
                         topic: Optional[str] = None) -> Dict[str, List[Dict]]:
@@ -93,19 +100,13 @@ class MultiPlatformExtractor:
 
     def _extract_hermes_sessions(self, date_range: Dict) -> List[Dict]:
         """Extract Hermes sessions via CLI export."""
-        days = (date_range['end'] - date_range['start']).days + 1
-
-        # Try hermes sessions export
-        cmd = f"hermes sessions export --format jsonl --days {days}"
+        # Hermes export writes JSONL to stdout when output is "-"
+        # No --format or --days flags exist on hermes sessions export
+        cmd = "hermes sessions export -"
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
         if result.returncode != 0:
-            # Fallback: try hermes sessions list with JSON output
-            cmd = "hermes sessions list --json"
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-
-            if result.returncode != 0:
-                raise RuntimeError(f"Hermes extraction failed: {result.stderr}")
+            raise RuntimeError(f"Hermes extraction failed: {result.stderr}")
 
         sessions = []
         for line in result.stdout.strip().split('\n'):
@@ -120,40 +121,151 @@ class MultiPlatformExtractor:
         return self._filter_by_date_range(sessions, date_range)
 
     def _extract_gemini_sessions(self, date_range: Dict) -> List[Dict]:
-        """Extract Gemini CLI sessions from config directory."""
-        session_dir = os.path.expanduser("~/.config/gemini/sessions/")
+        """Extract Gemini CLI sessions from antigravity/conversations directory."""
+        # Primary: ~/.gemini/antigravity/conversations (actual session storage)
+        session_dir = os.path.expanduser("~/.gemini/antigravity/conversations")
         sessions = []
 
         if not os.path.exists(session_dir):
-            return sessions
+            # Fallback: ~/.gemini/tmp
+            session_dir = os.path.expanduser("~/.gemini/tmp")
+            if not os.path.exists(session_dir):
+                return sessions
 
-        for file_path in glob.glob(f"{session_dir}/*.json"):
+        # Search for conversation JSON files
+        for file_path in glob.glob(os.path.join(session_dir, "*.json")):
             file_time = datetime.fromtimestamp(os.path.getmtime(file_path), tz=timezone.utc)
             if self._is_in_date_range(file_time, date_range):
                 try:
                     with open(file_path, 'r') as f:
-                        session = json.load(f)
-                        session['platform'] = 'gemini'
-                        session['file_path'] = file_path
-                        session['timestamp'] = file_time.isoformat()
-                        sessions.append(session)
+                        content = f.read()
+                        # Try JSONL first (one JSON object per line)
+                        lines = content.strip().split('\n')
+                        if all(self._is_json(l) for l in lines if l.strip()):
+                            for i, line in enumerate(lines):
+                                if line.strip():
+                                    try:
+                                        session = json.loads(line)
+                                        session['platform'] = 'gemini'
+                                        session['file_path'] = file_path
+                                        session['session_id'] = session.get('id', f"{Path(file_path).stem}_{i}")
+                                        sessions.append(session)
+                                    except json.JSONDecodeError:
+                                        continue
+                        else:
+                            # Single JSON object - wrap in messages structure
+                            obj = json.loads(content)
+                            session = {
+                                'platform': 'gemini',
+                                'session_id': Path(file_path).stem,
+                                'messages': obj.get('messages', [obj]),
+                                'file_path': file_path,
+                                'timestamp': obj.get('timestamp', obj.get('created_at', file_time.isoformat()))
+                            }
+                            sessions.append(session)
                 except (json.JSONDecodeError, IOError):
                     continue
 
         return sessions
 
+    def _is_json(self, s: str) -> bool:
+        """Check if string is valid JSON."""
+        try:
+            json.loads(s)
+            return True
+        except (json.JSONDecodeError, TypeError):
+            return False
+
     def _extract_opencode_sessions(self, date_range: Dict) -> List[Dict]:
-        """Extract OpenCode sessions from log files."""
-        log_dir = os.path.expanduser("~/.config/opencode/logs/")
+        """Extract OpenCode sessions from SQLite database."""
+        db_path = os.path.expanduser("~/.local/share/opencode/opencode.db")
         sessions = []
 
-        if not os.path.exists(log_dir):
+        if not os.path.exists(db_path):
             return sessions
 
-        # Find recent log files
-        for file_path in glob.glob(f"{log_dir}/*.log"):
-            if self._is_file_in_date_range(file_path, date_range):
-                sessions.extend(self._parse_opencode_logs(file_path))
+        try:
+            import sqlite3
+
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            # Query sessions with their messages
+            # time_created is unix timestamp in milliseconds
+            start_ts = int(date_range['start'].timestamp() * 1000)
+            end_ts = int(date_range['end'].timestamp() * 1000) + 86399999  # End of day
+
+            # Get sessions in date range
+            cursor.execute("""
+                SELECT id, project_id, slug, title, directory, time_created, time_updated
+                FROM session
+                WHERE time_created >= ? AND time_created <= ?
+                ORDER BY time_created DESC
+            """, (start_ts, end_ts))
+
+            for row in cursor.fetchall():
+                session_id = row['id']
+
+                # Get messages for this session
+                cursor.execute("""
+                    SELECT id, data, time_created
+                    FROM message
+                    WHERE session_id = ?
+                    ORDER BY time_created ASC
+                """, (session_id,))
+
+                messages = []
+                for msg_row in cursor.fetchall():
+                    try:
+                        msg_data = json.loads(msg_row['data'])
+                        msg_data['_msg_id'] = msg_row['id']
+                        msg_data['_msg_time'] = msg_row['time_created']
+                        messages.append(msg_data)
+                    except (json.JSONDecodeError, TypeError):
+                        # Fallback: store raw data
+                        messages.append({'raw': msg_row['data'], '_msg_id': msg_row['id']})
+
+                # Get parts (attachments/code blocks)
+                cursor.execute("""
+                    SELECT id, data, message_id, time_created
+                    FROM part
+                    WHERE session_id = ?
+                    ORDER BY time_created ASC
+                """, (session_id,))
+
+                parts = []
+                for part_row in cursor.fetchall():
+                    try:
+                        part_data = json.loads(part_row['data'])
+                        part_data['_part_id'] = part_row['id']
+                        parts.append(part_data)
+                    except (json.JSONDecodeError, TypeError):
+                        parts.append({'raw': part_row['data'], '_part_id': part_row['id']})
+
+                # Convert timestamp
+                timestamp = datetime.fromtimestamp(
+                    row['time_created'] / 1000, tz=timezone.utc
+                ).isoformat()
+
+                session = {
+                    'platform': 'opencode',
+                    'session_id': session_id,
+                    'project_id': row['project_id'],
+                    'slug': row['slug'],
+                    'title': row['title'],
+                    'directory': row['directory'],
+                    'messages': messages,
+                    'parts': parts,
+                    'timestamp': timestamp,
+                    'file_path': db_path
+                }
+                sessions.append(session)
+
+            conn.close()
+
+        except (sqlite3.Error, ImportError) as e:
+            print(f"   OpenCode SQLite error: {e}")
 
         return sessions
 
@@ -512,6 +624,156 @@ class MultiPlatformExtractor:
 
         return ' '.join(content)
 
+    def write_sessions_to_index(self, sessions: Dict[str, List[Dict]],
+                                index_dir: Path,
+                                date_range: Dict) -> Path:
+        """Write sessions as text files for ck indexing.
+        
+        Creates a directory structure suitable for ck-search indexing:
+        index_dir/
+          sessions/
+            platform_timestamp_sessionid.txt
+          summary.json
+        
+        Returns the path to the index directory.
+        """
+        import uuid
+        
+        sessions_dir = index_dir / "sessions"
+        sessions_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Write each session as a separate file
+        total_written = 0
+        for platform, platform_sessions in sessions.items():
+            for session in platform_sessions:
+                session_id = session.get('session_id', str(uuid.uuid4())[:8])
+                timestamp = self._parse_session_timestamp(session)
+                ts_str = timestamp.strftime('%Y%m%d_%H%M%S') if timestamp else 'unknown'
+                
+                filename = f"{platform}_{ts_str}_{session_id}.txt"
+                filepath = sessions_dir / filename
+                
+                # Build text content for indexing
+                lines = [
+                    f"# Session: {session_id}",
+                    f"# Platform: {platform}",
+                    f"# Timestamp: {session.get('timestamp', 'unknown')}",
+                    f"# Source: {session.get('file_path', 'unknown')}",
+                    "",
+                ]
+                
+                # Add messages
+                messages = session.get('messages', [])
+                for msg in messages:
+                    role = msg.get('role', 'unknown') if isinstance(msg, dict) else 'unknown'
+                    msg_content = msg.get('content', msg) if isinstance(msg, dict) else str(msg)
+                    lines.append(f"[{role.upper()}]")
+                    lines.append(msg_content)
+                    lines.append("")
+                
+                filepath.write_text('\n'.join(lines))
+                total_written += 1
+        
+        # Write summary metadata
+        summary = {
+            'date_range': {
+                'start': date_range['start'].isoformat(),
+                'end': date_range['end'].isoformat()
+            },
+            'platforms': {p: len(s) for p, s in sessions.items()},
+            'total_sessions': total_written,
+            'indexed_at': datetime.now(timezone.utc).isoformat()
+        }
+        
+        with open(sessions_dir.parent / 'summary.json', 'w') as f:
+            json.dump(summary, f, indent=2)
+        
+        print(f"✓ Wrote {total_written} sessions to {sessions_dir}")
+        return sessions_dir.parent
+
+    def index_with_ck(self, index_dir: Path) -> bool:
+        """Index the session directory with ck-search.
+        
+        Returns True if indexing succeeded, False otherwise.
+        """
+        try:
+            # Check if ck is available
+            result = subprocess.run(['ck', '--version'], capture_output=True)
+            if result.returncode != 0:
+                print("✗ ck-search not found in PATH")
+                return False
+            
+            # Build the index
+            cmd = ['ck', '--index', str(index_dir)]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                print(f"✗ ck indexing failed: {result.stderr}")
+                return False
+            
+            print(f"✓ ck index built at {index_dir}/.ck/")
+            return True
+            
+        except Exception as e:
+            print(f"✗ ck indexing error: {e}")
+            return False
+
+    def search_indexed_sessions(self, index_dir: Path, query: str,
+                               search_type: str = 'sem',
+                               topk: int = 10) -> List[Dict]:
+        """Search indexed sessions using ck.
+        
+        Args:
+            index_dir: Path to the indexed session directory
+            query: Search query string
+            search_type: 'sem' (semantic), 'lex' (lexical), 'hybrid', or 'regex'
+            topk: Number of results to return
+        
+        Returns list of search results with file, score, and preview.
+        """
+        import subprocess
+        
+        try:
+            # Map search type to ck flag
+            search_flags = {
+                'sem': ['--sem'],
+                'lex': ['--lex'],
+                'hybrid': ['--hybrid'],
+                'regex': [],  # default grep-style
+            }
+            
+            flag_map = {
+                'sem': '--sem',
+                'lex': '--lex', 
+                'hybrid': '--hybrid',
+            }
+            
+            cmd = ['ck', '--jsonl']
+            if search_type in flag_map:
+                cmd.append(flag_map[search_type])
+            cmd.extend(['--topk', str(topk), query, str(index_dir / 'sessions')])
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                print(f"✗ ck search failed: {result.stderr}")
+                return []
+            
+            # Parse JSONL output
+            results = []
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    try:
+                        results.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+            
+            return results
+            
+        except Exception as e:
+            print(f"✗ ck search error: {e}")
+            return []
+
     def _extract_files_mentioned_in_session(self, session: Dict) -> List[str]:
         """Extract file paths mentioned in session."""
         content = self._get_session_content(session)
@@ -528,10 +790,320 @@ class MultiPlatformExtractor:
 
         return list(set(files))
 
+    # =============================================================================
+    # CK-SEARCH DECISION TREE
+    # =============================================================================
+    # Determines when to use ck-search indexing vs. direct extraction
+    # to avoid loading everything into context
+
+    def decide_extraction_mode(self, date_range: Dict, topic: Optional[str],
+                               platforms: List[str], force_mode: Optional[str] = None) -> Dict:
+        """Decision tree for extraction strategy.
+
+        Returns:
+            Dict with keys:
+                mode: 'direct' | 'index-then-search' | 'index-only'
+                reasoning: str explaining why
+                index_dir: Path (if mode is index-*)
+                search_query: str (if topic-based)
+        """
+        if force_mode:
+            return self._force_mode_decision(force_mode, date_range, topic)
+
+        date_span_days = (date_range['end'] - date_range['start']).days + 1
+        estimated_sessions = self._estimate_session_count(date_range, platforms)
+        has_topic = bool(topic and len(topic.split()) >= self.TOPIC_SEARCH_THRESHOLD)
+
+        # Decision nodes
+        decisions = []
+
+        # Node 1: Topic search → use ck-search (semantic lookup)
+        if has_topic:
+            decisions.append({
+                'node': 'topic_search',
+                'mode': 'index-then-search',
+                'reasoning': f"Topic query '{topic}' → semantic search via ck"
+            })
+
+        # Node 2: Long date range → index (avoid massive extraction)
+        elif date_span_days > self.LONG_DATE_RANGE_DAYS:
+            decisions.append({
+                'node': 'long_range',
+                'mode': 'index-only',
+                'reasoning': f"Date range {date_span_days}d > {self.LONG_DATE_RANGE_DAYS}d → build index"
+            })
+
+        # Node 3: Many sessions → index (context overflow protection)
+        elif estimated_sessions > self.LARGE_SESSION_COUNT:
+            decisions.append({
+                'node': 'large_count',
+                'mode': 'index-only',
+                'reasoning': f"~{estimated_sessions} sessions > {self.LARGE_SESSION_COUNT} → build index"
+            })
+
+        # Node 4: Multiple platforms → index (aggregation complexity)
+        elif len(platforms) >= 3:
+            decisions.append({
+                'node': 'multi_platform',
+                'mode': 'index-then-search',
+                'reasoning': f"{len(platforms)} platforms → index for correlation"
+            })
+
+        # Default: direct extraction (fast path for simple temporal queries)
+        else:
+            decisions.append({
+                'node': 'direct',
+                'mode': 'direct',
+                'reasoning': f"Simple temporal query, ~{estimated_sessions} sessions → direct extract"
+            })
+
+        # Use first (highest priority) decision
+        decision = decisions[0]
+
+        # Determine index directory
+        index_dir = self.default_index_dir
+
+        # Check if index already exists and is fresh (< 24h old)
+        existing = self._get_existing_index_info(index_dir)
+        if existing:
+            if existing['date_range'] == self._date_range_key(date_range):
+                decision['index_is_fresh'] = True
+                decision['reasoning'] += f" (reusing existing index from {existing['indexed_at']})"
+            else:
+                decision['index_needs_update'] = True
+
+        decision['index_dir'] = index_dir
+        decision['estimated_sessions'] = estimated_sessions
+        decision['date_span_days'] = date_span_days
+
+        return decision
+
+    def _force_mode_decision(self, force_mode: str, date_range: Dict,
+                             topic: Optional[str]) -> Dict:
+        """Handle forced mode flags."""
+        modes = {
+            'direct': ('direct', 'Forced direct mode'),
+            'index': ('index-only', 'Forced indexing mode'),
+            'search': ('index-then-search', 'Forced search mode')
+        }
+        if force_mode not in modes:
+            return self.decide_extraction_mode(date_range, topic, self.platforms)
+
+        mode, reasoning = modes[force_mode]
+        return {
+            'mode': mode,
+            'reasoning': reasoning,
+            'index_dir': self.default_index_dir,
+            'forced': True
+        }
+
+    def _estimate_session_count(self, date_range: Dict, platforms: List[str]) -> int:
+        """Estimate session count based on date range and platforms.
+
+        Uses platform-specific heuristics from known usage patterns.
+        """
+        days = (date_range['end'] - date_range['start']).days + 1
+        estimates = {
+            'claude': 8,    # ~8 sessions/day typical
+            'hermes': 5,    # ~5 sessions/day
+            'gemini': 2,    # ~2 sessions/day
+            'opencode': 1,  # ~1 session/day
+        }
+        total = sum(estimates.get(p, 2) for p in platforms) * days
+        return min(total, 200)  # Cap at 200 for estimation
+
+    def _date_range_key(self, date_range: Dict) -> str:
+        """Create a comparable key for date range."""
+        return f"{date_range['start'].strftime('%Y%m%d')}-{date_range['end'].strftime('%Y%m%d')}"
+
+    def _get_existing_index_info(self, index_dir: Path) -> Optional[Dict]:
+        """Check if a valid index exists."""
+        summary_path = index_dir / 'summary.json'
+        ck_dir = index_dir / '.ck'
+
+        if not summary_path.exists() or not ck_dir.exists():
+            return None
+
+        try:
+            with open(summary_path) as f:
+                summary = json.load(f)
+
+            # Check if index is < 24 hours old
+            indexed_at = datetime.fromisoformat(summary['indexed_at'].replace('Z', '+00:00'))
+            age_hours = (datetime.now(timezone.utc) - indexed_at).total_seconds() / 3600
+
+            if age_hours > 24:
+                return None
+
+            return {
+                'date_range': summary['date_range']['start'][:10] + '-' + summary['date_range']['end'][:10],
+                'indexed_at': summary['indexed_at'],
+                'total_sessions': summary['total_sessions']
+            }
+        except (json.JSONDecodeError, KeyError, ValueError):
+            return None
+
+    def execute_recall_with_decision(self, date_range: Dict, topic: Optional[str],
+                                     platforms: List[str], github_repo: Optional[str] = None,
+                                     force_mode: Optional[str] = None) -> Dict:
+        """Execute recall using the decision tree.
+
+        Implements the full flow:
+        1. Decide extraction strategy
+        2. Execute (direct or index+search)
+        3. Return structured results with one_thing
+        """
+        decision = self.decide_extraction_mode(date_range, topic, platforms, force_mode)
+        mode = decision['mode']
+        index_dir = decision['index_dir']
+
+        print(f"\n🎯 Extraction mode: {mode}")
+        print(f"   Reasoning: {decision['reasoning']}")
+        if 'estimated_sessions' in decision:
+            print(f"   Est. sessions: {decision['estimated_sessions']}, span: {decision['date_span_days']}d")
+
+        # MODE: direct (fast path - no indexing)
+        if mode == 'direct':
+            sessions = self.extract_sessions(platforms, date_range, topic)
+            github_data = self._fetch_github_if_needed(github_repo, date_range)
+            timeline = self.correlate_timeline(sessions, github_data, [])
+            one_thing = self.generate_one_thing(timeline)
+
+            return {
+                'mode': 'direct',
+                'sessions': sessions,
+                'timeline': timeline,
+                'one_thing': one_thing,
+                'index_used': None
+            }
+
+        # MODE: index-then-search (topic queries, multi-platform)
+        elif mode == 'index-then-search':
+            # Check if we have a fresh index
+            existing = self._get_existing_index_info(index_dir)
+
+            if existing and existing.get('date_range') == self._date_range_key(date_range):
+                print(f"\n📦 Using existing index: {existing['total_sessions']} sessions")
+            else:
+                print(f"\n📦 Building new index at {index_dir}...")
+                sessions = self.extract_sessions(platforms, date_range, None)
+                index_dir = self.write_sessions_to_index(sessions, index_dir, date_range)
+                if not self.index_with_ck(index_dir):
+                    # Fallback to direct if indexing fails
+                    print("   ⚠ ck indexing failed, falling back to direct extraction")
+                    timeline = self.correlate_timeline(sessions, {}, [])
+                    one_thing = self.generate_one_thing(timeline)
+                    return {'mode': 'direct-fallback', 'sessions': sessions,
+                            'timeline': timeline, 'one_thing': one_thing}
+
+            # Perform semantic search if topic provided
+            if topic:
+                print(f"\n🔍 Semantic search: '{topic}'")
+                results = self.search_indexed_sessions(index_dir, topic, 'sem', topk=10)
+
+                # Load matched sessions
+                matched_sessions = self._load_matched_sessions_from_results(results)
+                timeline = self.correlate_timeline(matched_sessions, {}, [])
+                one_thing = self.generate_one_thing(timeline)
+
+                return {
+                    'mode': 'index-then-search',
+                    'search_results': results,
+                    'matched_sessions': matched_sessions,
+                    'timeline': timeline,
+                    'one_thing': one_thing,
+                    'index_used': str(index_dir)
+                }
+            else:
+                # No topic, return indexed sessions for correlation
+                sessions = self.extract_sessions(platforms, date_range, None)
+                github_data = self._fetch_github_if_needed(github_repo, date_range)
+                timeline = self.correlate_timeline(sessions, github_data, [])
+                one_thing = self.generate_one_thing(timeline)
+
+                return {
+                    'mode': 'index-ready',
+                    'sessions': sessions,
+                    'timeline': timeline,
+                    'one_thing': one_thing,
+                    'index_used': str(index_dir)
+                }
+
+        # MODE: index-only (long range, large count)
+        else:  # index-only
+            print(f"\n📦 Building index at {index_dir}...")
+            sessions = self.extract_sessions(platforms, date_range, None)
+            index_dir = self.write_sessions_to_index(sessions, index_dir, date_range)
+
+            if not self.index_with_ck(index_dir):
+                print("   ⚠ ck indexing failed")
+                timeline = self.correlate_timeline(sessions, {}, [])
+                one_thing = self.generate_one_thing(timeline)
+                return {'mode': 'direct-fallback', 'sessions': sessions,
+                        'timeline': timeline, 'one_thing': one_thing}
+
+            github_data = self._fetch_github_if_needed(github_repo, date_range)
+            timeline = self.correlate_timeline(sessions, github_data, [])
+            one_thing = self.generate_one_thing(timeline)
+
+            return {
+                'mode': 'index-only',
+                'sessions': sessions,
+                'timeline': timeline,
+                'one_thing': one_thing,
+                'index_used': str(index_dir)
+            }
+
+    def _fetch_github_if_needed(self, repo: Optional[str],
+                                date_range: Dict) -> Dict:
+        """Fetch GitHub data if repo specified."""
+        if not repo:
+            return {}
+        try:
+            return self.fetch_github_data(repo, date_range)
+        except Exception as e:
+            print(f"   ⚠ GitHub fetch failed: {e}")
+            return {}
+
+    def _load_matched_sessions_from_results(self, results: List[Dict]) -> Dict[str, List]:
+        """Re-extract full sessions from ck search results for correlation."""
+        # Group results by platform
+        by_platform = {'claude': [], 'hermes': [], 'gemini': [], 'opencode': []}
+
+        for r in results:
+            filepath = r.get('file', r.get('path', ''))
+            if not filepath:
+                continue
+
+            # Parse platform from filename: platform_timestamp_sessionid.txt
+            filename = Path(filepath).name
+            parts = filename.split('_')
+            if parts and parts[0] in by_platform:
+                platform = parts[0]
+                # Re-extract from source JSONL
+                platform_sessions = self._extract_platform_sessions(
+                    platform,
+                    {'start': datetime.min.replace(tzinfo=timezone.utc),
+                     'end': datetime.max.replace(tzinfo=timezone.utc)},
+                    None
+                )
+                by_platform[platform] = platform_sessions
+                break  # Just get all, filtering happens in correlation
+
+        return by_platform
+
 
 def parse_date_range(date_arg: str) -> Dict[str, datetime]:
     """Parse date argument into start/end datetime range."""
     now = datetime.now(timezone.utc)
+
+    # Handle "last N days" pattern
+    last_days_match = re.match(r'last\s+(\d+)\s+days?', date_arg, re.IGNORECASE)
+    if last_days_match:
+        num_days = int(last_days_match.group(1))
+        start = (now - timedelta(days=num_days)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end = now
+        return {'start': start, 'end': end}
 
     if date_arg == 'yesterday':
         start = (now - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -559,12 +1131,46 @@ def parse_date_range(date_arg: str) -> Dict[str, datetime]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Multi-platform session recall')
-    parser.add_argument('query', nargs='*', help='Date range or topic query')
-    parser.add_argument('--platform', action='append', help='Specific platform(s) to query')
+    parser = argparse.ArgumentParser(
+        description='Multi-platform session recall with intelligent ck-search routing',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+Examples:
+  # Auto mode - decision tree picks extraction strategy
+  python3 multi-platform-extract.py last week
+  python3 multi-platform-extract.py "Ruby RAG" --platform claude
+
+  # Force specific modes
+  python3 multi-platform-extract.py last month --mode direct    # Skip indexing
+  python3 multi-platform-extract.py --mode index                # Force indexing
+  python3 multi-platform-extract.py --mode search "debugging"    # Force search
+
+  # Advanced: Manual index control
+  python3 multi-platform-extract.py --index /tmp/recall-index last week
+  python3 multi-platform-extract.py --search "authentication" --index /tmp/recall-index
+'''
+    )
+    parser.add_argument('query', nargs='*', help='Date range (yesterday/today/last week/YYYY-MM-DD) or topic keywords')
+    parser.add_argument('--platform', action='append', help='Specific platform(s): claude/hermes/gemini/opencode')
     parser.add_argument('--github', help='GitHub repo for commit correlation (owner/repo)')
     parser.add_argument('--backup', help='Backup path for restic diff analysis')
     parser.add_argument('--output', help='Output file (default: stdout)')
+
+    # Mode control (new)
+    parser.add_argument('--mode', choices=['auto', 'direct', 'index', 'search'],
+                       default='auto',
+                       help='Extraction mode: auto (decision tree), direct (skip indexing), index (force), search (query index)')
+
+    # Legacy ck-search RAG options (still supported)
+    parser.add_argument('--index', metavar='DIR',
+                       help='[LEGACY] Write sessions to DIR and index with ck-search')
+    parser.add_argument('--search', metavar='QUERY',
+                       help='[LEGACY] Search indexed sessions using ck')
+    parser.add_argument('--search-type', choices=['sem', 'lex', 'hybrid', 'regex'],
+                       default='sem',
+                       help='ck search type (default: sem)')
+    parser.add_argument('--topk', type=int, default=10,
+                       help='Number of search results (default: 10)')
 
     args = parser.parse_args()
 
@@ -579,8 +1185,7 @@ def main():
         if arg in ['yesterday', 'today', 'last week', 'this week'] or re.match(r'\d{4}-\d{2}-\d{2}', arg):
             date_range = parse_date_range(arg)
         else:
-            topic = ' '.join(args.query)
-            break
+            topic = ' '.join(args.query) if not topic else topic + ' ' + arg
 
     if not date_range:
         date_range = parse_date_range('last week')  # Default
@@ -588,70 +1193,96 @@ def main():
     print(f"🔍 Recalling from {len(platforms)} platforms: {', '.join(platforms)}")
     print(f"📅 Date range: {date_range['start'].strftime('%Y-%m-%d')} to {date_range['end'].strftime('%Y-%m-%d')}")
     if topic:
-        print(f"🔎 Topic filter: {topic}")
+        print(f"🔎 Topic: {topic}")
 
-    # Extract sessions
-    sessions = extractor.extract_sessions(platforms, date_range, topic)
-    total_sessions = sum(len(s) for s in sessions.values())
-    print(f"\n📋 Total sessions found: {total_sessions}")
+    # Handle legacy --index / --search (backward compatibility)
+    if args.index or args.search:
+        _handle_legacy_mode(extractor, args, date_range, topic, platforms)
+        return
 
-    # GitHub integration
-    github_data = {}
-    if args.github:
-        try:
-            print(f"🐙 Fetching GitHub data for {args.github}...")
-            github_data = extractor.fetch_github_data(args.github, date_range)
-            print(f"✓ GitHub: {len(github_data.get('commits', []))} commits, {len(github_data.get('pull_requests', []))} PRs")
-        except Exception as e:
-            print(f"✗ GitHub integration failed: {e}")
+    # Handle --mode flag
+    force_mode = None
+    if args.mode != 'auto':
+        force_mode = args.mode
+        print(f"⚠ Forced mode: {force_mode}")
 
-    # Backup analysis
-    backup_diffs = []
-    if args.backup:
-        try:
-            print(f"💾 Analyzing backup diffs for {args.backup}...")
-            backup_diffs = extractor.analyze_backup_diffs(args.backup, date_range)
-            print(f"✓ Restic: {len(backup_diffs)} backup diffs")
-        except Exception as e:
-            print(f"✗ Backup analysis failed: {e}")
+    # NEW: Use decision tree execution
+    result = extractor.execute_recall_with_decision(
+        date_range=date_range,
+        topic=topic,
+        platforms=platforms,
+        github_repo=args.github,
+        force_mode=force_mode
+    )
 
-    # Correlate timeline
-    print("\n🔗 Correlating timeline...")
-    timeline = extractor.correlate_timeline(sessions, github_data, backup_diffs)
-
-    # Generate One Thing
-    one_thing = extractor.generate_one_thing(timeline)
-
-    # Output results
-    results = {
-        'summary': {
-            'platforms': {platform: len(sessions.get(platform, [])) for platform in platforms},
-            'total_sessions': total_sessions,
-            'date_range': {
-                'start': date_range['start'].isoformat(),
-                'end': date_range['end'].isoformat()
-            },
-            'topic': topic,
-            'github_data': {
-                'commits': len(github_data.get('commits', [])),
-                'pull_requests': len(github_data.get('pull_requests', []))
-            },
-            'backup_diffs': len(backup_diffs)
-        },
-        'sessions': sessions,
-        'github_data': github_data,
-        'backup_diffs': backup_diffs,
-        'timeline': timeline,
-        'one_thing': one_thing
-    }
-
+    # Output based on mode
     if args.output:
         with open(args.output, 'w') as f:
-            json.dump(results, f, indent=2, default=str)
+            json.dump(result, f, indent=2, default=str)
         print(f"\n📝 Results written to {args.output}")
     else:
-        print(f"\n🎯 ONE THING: {one_thing['action']}")
-        print(f"💡 Reasoning: {one_thing['reasoning']}")
+        print(f"\n🎯 ONE THING: {result['one_thing']['action']}")
+        print(f"💡 Reasoning: {result['one_thing']['reasoning']}")
+        if result.get('index_used'):
+            print(f"📦 Index: {result['index_used']}")
+        if result.get('search_results'):
+            print(f"\n🔍 Top ck-search results:")
+            for i, r in enumerate(result['search_results'][:5], 1):
+                print(f"   {i}. {r.get('file', 'unknown')}: {r.get('preview', '')[:80]}...")
+
+
+def _handle_legacy_mode(extractor, args, date_range, topic, platforms):
+    """Handle legacy --index / --search flags for backward compatibility."""
+    # Legacy: search only mode
+    if args.search and args.index:
+        index_path = Path(args.index).expanduser().resolve()
+        if not index_path.exists():
+            print(f"✗ Index directory not found: {index_path}")
+            print("   Run without --search first to create the index")
+            sys.exit(1)
+
+        print(f"🔍 Searching index at {index_path}")
+        print(f"   Query: {args.search}")
+        print(f"   Type: {args.search_type}, topk: {args.topk}")
+
+        results = extractor.search_indexed_sessions(
+            index_path, args.search, args.search_type, args.topk
+        )
+
+        if results:
+            print(f"\n📋 Found {len(results)} results:\n")
+            for i, r in enumerate(results, 1):
+                score = r.get('score', r.get('rrf_score', 'N/A'))
+                file = r.get('file', r.get('path', 'unknown'))
+                preview = r.get('preview', '')[:200]
+                print(f"{i}. [{score}] {file}")
+                print(f"   {preview}...")
+                print()
+        else:
+            print("No results found")
+        return
+
+    # Legacy: index only mode
+    if args.index:
+        index_path = Path(args.index).expanduser().resolve()
+        print(f"\n📦 Writing sessions to {index_path} for ck-search indexing...")
+
+        sessions = extractor.extract_sessions(platforms, date_range, topic)
+        total_sessions = sum(len(s) for s in sessions.values())
+        print(f"📋 Total sessions: {total_sessions}")
+
+        index_dir = extractor.write_sessions_to_index(sessions, index_path, date_range)
+
+        print(f"\n🔧 Building ck-search index...")
+        if extractor.index_with_ck(index_dir):
+            print(f"\n✅ Index ready at: {index_dir}")
+            print(f"   Search with: python3 multi-platform-extract.py --search \"query\" --index {index_path}")
+        return
+
+    # Legacy: search without index
+    if args.search:
+        print("⚠ --search requires --index. Use --mode search instead or build index first.")
+        sys.exit(1)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,34 @@
+{
+  "version": "0.1.0",
+  "created": 1774893479,
+  "updated": 1774893590,
+  "files": {
+    "./session-graph.py": {
+      "path": "./session-graph.py",
+      "hash": "458a48105fe58a2ab8966324c8b619886ebcffa3b27271929d37857a21f5fd15",
+      "last_modified": 1774886168,
+      "size": 47794
+    },
+    "./extract-sessions.py": {
+      "path": "./extract-sessions.py",
+      "hash": "fe2b92d21ba51b185bf129c58bffb4efff6119e2d855b96f3ed2fd9eddb4d8ad",
+      "last_modified": 1774886168,
+      "size": 8515
+    },
+    "./multi-platform-extract.py": {
+      "path": "./multi-platform-extract.py",
+      "hash": "55f45a5112fe652ad2fff1763c78eaf286004f14d4f982e3c9f0b07c293ff0c9",
+      "last_modified": 1774893572,
+      "size": 48429
+    },
+    "./recall-day.py": {
+      "path": "./recall-day.py",
+      "hash": "3b847c1b02130004696bf3f041af84ab422a23284fe3be71489968264d432b6b",
+      "last_modified": 1774886168,
+      "size": 15266
+    }
+  },
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "embedding_dimensions": 384,
+  "chunk_hash_version": 2
+}

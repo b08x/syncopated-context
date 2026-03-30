@@ -24,8 +24,8 @@ Comprehensive session recall across Claude Code, Gemini CLI, OpenCode, and Herme
 |----------|----------------|----------------|--------|
 | Claude Code | `~/.claude/projects/*/` | Native JSONL parsing | JSONL |
 | Hermes | SQLite store | `hermes sessions export` | JSONL |
-| Gemini CLI | `~/.config/gemini/sessions/` | JSON file parsing | JSON |
-| OpenCode | `~/.config/opencode/logs/` | Log file parsing | Structured logs |
+| Gemini CLI | `~/.gemini/antigravity/conversations/` | JSON file parsing | JSON |
+| OpenCode | `~/.local/share/opencode/opencode.db` | SQLite query | SQLite |
 
 ## Common Baseline Failure Patterns
 
@@ -97,7 +97,7 @@ python3 scripts/extract-sessions.py --days 7 --source ~/.claude/projects/PROJECT
 **Hermes Sessions**
 ```bash
 # Export to JSONL
-hermes sessions export --format jsonl --output hermes_sessions.jsonl --days 7
+hermes sessions export -
 ```
 
 **Gemini CLI Sessions**
@@ -181,9 +181,114 @@ When configured with the memory system:
 - Project-specific session insights stored as project memories
 - Platform usage patterns tracked for optimization
 
+## Intelligent Extraction Decision Tree
+
+The recall script automatically decides between **direct extraction** and **ck-search indexing** based on query characteristics, avoiding context overflow while keeping fast queries fast.
+
+### Decision Nodes (Priority Order)
+
+| Node | Condition | Mode | Reasoning |
+|------|-----------|------|-----------|
+| **Topic Search** | Query has 3+ words (not a date) | `index-then-search` | Semantic lookup via ck |
+| **Long Range** | Date span > 7 days | `index-only` | Avoid massive extraction |
+| **Large Count** | Estimated sessions > 50 | `index-only` | Context overflow protection |
+| **Multi-Platform** | 3+ platforms queried | `index-then-search` | Aggregation complexity |
+| **Default** | Simple temporal query | `direct` | Fast path |
+
+### How It Works
+
+```python
+# The decision tree runs automatically in auto mode
+# Override with --mode flag if needed
+
+python3 multi-platform-extract.py "Ruby RAG"           # → index-then-search (topic)
+python3 multi-platform-extract.py last 30 days        # → index-only (long range)
+python3 multi-platform-extract.py --mode direct yesterday  # → direct (forced)
+```
+
+### Session Count Estimation
+
+Based on platform-specific heuristics (~sessions/day):
+- **Claude Code**: 8/day
+- **Hermes**: 5/day
+- **Gemini CLI**: 2/day
+- **OpenCode**: 1/day
+
+Multiplied by days in range, capped at 200.
+
+### Index Freshness
+
+The system checks for an existing index at `~/.recall-index/`:
+- If index is < 24 hours old and matches date range → **reuse**
+- Otherwise → **rebuild**
+
+Force rebuild: delete `~/.recall-index/` or use `--mode index`
+
+## Modular RAG with ck-search
+
+For large recall queries (e.g., "last month until today"), use ck-search to index sessions and search incrementally without holding all context.
+
+### Workflow
+
+```
+1. Extract & Index:  python3 scripts/multi-platform-extract.py --index /tmp/recall-index
+2. Search:           python3 scripts/multi-platform-extract.py --search "authentication" --index /tmp/recall-index
+3. Iterate:          Refine queries without re-extracting sessions
+```
+
+### Index & Search Commands
+
+```bash
+# Step 1: Extract sessions and build ck-search index
+python3 scripts/multi-platform-extract.py --index ~/recall-index last month
+
+# Step 2: Search indexed sessions (multiple times, low context)
+python3 scripts/multi-platform-extract.py --search "ruby code" --index ~/recall-index
+python3 scripts/multi-platform-extract.py --search "debugging session" --index ~/recall-index --search-type hybrid
+
+# Search types:
+#   --search-type sem      # Semantic (conceptual similarity) - DEFAULT
+#   --search-type lex      # Lexical (BM25 full-text)
+#   --search-type hybrid   # Combined regex + semantic (RRF)
+#   --search-type regex    # Traditional grep-style pattern matching
+
+# Control result count:
+#   --topk 5               # Return only top 5 results
+```
+
+### When to Use Modular RAG
+
+| Scenario | Approach |
+|----------|----------|
+| "Recall what I worked on yesterday" | Direct extraction (fast) |
+| "Last month across all platforms" | Extract + ck-index, then search |
+| "Find sessions about X" | Search existing index |
+| Iterative exploration of past work | ck-search queries |
+
+### Index Structure
+
+```
+~/recall-index/
+├── .ck/                    # ck-search index (can be deleted and rebuilt)
+├── sessions/               # Individual session files
+│   ├── hermes_20260315_143022_abc123.txt
+│   ├── claude_20260314_091500_def456.txt
+│   └── ...
+└── summary.json            # Metadata about the index
+```
+
+### Benefits
+
+- **Constant context**: Search queries use minimal context regardless of date range
+- **Incremental exploration**: Iteratively refine searches without re-extracting
+- **Multiple views**: Same index supports semantic, lexical, and regex search
+- **Portable**: Index directory can be copied to other machines
+
 ## Performance Notes
 
 - **Session extraction**: Parallel processing across platforms (~30 seconds for 7 days)
+- **ck indexing**: Automatic; incremental updates on subsequent searches
 - **GitHub API**: Rate limited to 5000 requests/hour
 - **Restic operations**: I/O bound, cache snapshot lists
 - **Correlation engine**: Memory intensive for large datasets, use streaming for >1000 sessions
+- **Modular RAG**: Bypasses correlation engine for search-only queries
