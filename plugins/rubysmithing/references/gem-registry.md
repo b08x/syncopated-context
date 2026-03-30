@@ -115,6 +115,24 @@ Last updated: 2026-03-18
 
 ---
 
+## Document Ingestion
+
+| Gem | Context7 ID | Role | Key Patterns | last_verified |
+|---|---|---|---|---|
+| kreuzberg | `/websites/kreuzberg_dev_reference` | Document extraction (PDF, DOCX, XLSX, images) | `extract_file_sync`, `extract_bytes_sync`, `batch_extract_bytes_sync`, `Config::Extraction`, `Config::Chunking`, `HierarchyConfig` | 2026-03 |
+
+**kreuzberg key signatures:**
+- `Kreuzberg.extract_file_sync(path, config: config)` → `result` with `.content`, `.mime_type`, `.metadata`, `.tables`, `.detected_languages`, `.pages`
+- `Kreuzberg.extract_bytes_sync(data, mime_type, config)` → same result shape
+- `Kreuzberg.batch_extract_bytes_sync(data_list, mime_types, config)` → `Array<Hash>`
+- `Kreuzberg::Config::Extraction.new(chunking:, ocr:, pdf_options:, language_detection:, extract_tables:, extract_images:, use_cache:, output_format:)`
+- `Kreuzberg::Config::Chunking.new(max_characters: N, overlap: N, respect_sentences: true, respect_paragraphs: false, chunker_type: 'text', prepend_heading_context: false)`
+- `Kreuzberg::Config::Ocr.new(backend: 'tesseract'|'easyocr', language: 'eng')`
+- `Kreuzberg::PdfConfig.new(hierarchy: Kreuzberg::HierarchyConfig.new(enabled: true), extract_images: false, passwords: [])` — `result.pages[n].hierarchy.blocks` → `block.level`, `block.text`
+- Ruby-native PDF/DOCX/XLSX/image extraction — replaces Docling PyCall bridge
+
+---
+
 ## Data Processing
 
 | Gem | Context7 ID | Role | Key Patterns | last_verified |
@@ -209,7 +227,21 @@ Runtime spine + bubbletea + lipgloss + ruby_llm + circuit_breaker + async
 
 Runtime spine + bubbletea + ruby_llm + pgvector + sequel + pg
 
-+ pragmatic_segmenter + async + circuit_breaker
++ kreuzberg + pragmatic_segmenter + async + circuit_breaker
+
+```
+
+### SFL / Neuro-Symbolic NLP Pipeline
+
+```shell
+
+Runtime spine + kreuzberg + pragmatic_segmenter + ruby-spacy
+
++ ruby-wordnet + wordnet-defaultdb + informers
+
++ ruby_llm + ruby_llm-schema + sequel + sequel_pg + pgvector + pg
+
++ ohm + ohm-contrib + async + circuit_breaker
 
 ```
 

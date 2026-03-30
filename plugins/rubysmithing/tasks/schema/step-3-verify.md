@@ -35,7 +35,7 @@ Run a scoped SIFT assessment focused on data infrastructure correctness and SFL 
 
 ### Index Strategy
 - HNSW index present on every `embedding` column (`vector_cosine_ops` op class)
-- GIN index present on every JSONB column used in filter queries (`ideational_structure`, `interpersonal_structure`, `thematic_structure`, `register_metadata`)
+- GIN index present on every JSONB column used in filter queries (`ideational_structure`, `interpersonal_structure`, `textual_structure`, `register_metadata`)
 - `process_type` and `mood_type` plain B-tree indexes present (used in WHERE clause routing)
 - `pg_trgm`, `uuid-ossp`, and `vector` extensions bootstrapped at migration start
 

@@ -19,6 +19,7 @@ Identify and verify every non-stdlib gem required to implement the data infrastr
    - Knowledge graph / lexical semantics → `ruby-wordnet`, `wordnet-defaultdb`
    - Schema validation → `dry-schema`, `dry-types`
    - LLM embeddings → `ruby_llm`
+   - Document ingestion (PDF, DOCX, XLSX, images/OCR) → `kreuzberg`
 3. For each gem: check SQLite cache, resolve via Context7 if miss/stale, store result
 4. Check `$CLAUDE_PLUGIN_ROOT/references/gem-registry.md` for pre-mapped IDs
 

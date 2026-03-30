@@ -22,6 +22,7 @@ Design and implement the data infrastructure using verified gem signatures as gr
    - If not specified, default to `vector(384)` (local inference, no API dependency)
 
 3. Identify storage plane(s) and generate artifacts accordingly:
+   - **Document ingestion** (if `kreuzberg` in gem set): scaffold `lib/<name>/pipeline/document_ingestor.rb` using `Kreuzberg.extract_file_sync` / `batch_extract_bytes_sync` with `Config::Extraction`, `Config::Chunking`, `Config::Ocr`, and `PdfConfig` + `HierarchyConfig` for PDF hierarchy-aware ingestion. Pass `result.content` to `LinguisticChunker`. This is the pipeline entry point — scaffold before relational schema.
    - **Relational/vector**: Sequel migrations following the canonical schema order: `documents` → `sentences` → `clauses` → `participants` (+ `circumstances` if needed). Always include: `pg_trgm`, `uuid-ossp`, `vector` extensions; `process_type` enum constraint; HNSW index on `embedding`; GIN indexes on all JSONB columns.
    - **Ephemeral/hot**: Ohm models with Paragraph→Sentence→Word hierarchy; `content_hash` on OhmSentence for PostgreSQL idempotency check.
    - **Graph/knowledge**: `ruby-wordnet` hypernym traversal + `WORDNET_TO_SFL_PROCESS` mapping constant + `PARTICIPANT_ROLES` assignment table.
@@ -43,4 +44,4 @@ All generated artifacts in code blocks with Zeitwerk-compliant path as header co
 
 For every schema design output, also include:
 - Rationale block: HNSW vs IVFFlat choice, clause-level vs document-level granularity justification, embedding dimension annotation with model name
-- `dry-schema` contract for each JSONB column (ideational_structure, interpersonal_structure, thematic_structure, register_metadata)
+- `dry-schema` contract for each JSONB column (ideational_structure, interpersonal_structure, textual_structure, register_metadata)

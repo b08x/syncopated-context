@@ -23,6 +23,7 @@ Scaffold the data foundation for the new project — schema migrations, base mod
    | `ruby-spacy` | Add `participants` table migration; add `PARTICIPANT_ROLES` mapping constant to `lib/<name>/nlp/` |
    | `ruby-wordnet` | Add `WORDNET_TO_SFL_PROCESS` mapping constant; add `db/migrations/002_create_concept_nodes.rb` if knowledge graph is in scope |
    | `ohm` + `ohm-contrib` | Create `lib/<name>/cache/` with `OhmParagraph`, `OhmSentence`, `OhmWord` hierarchy |
+   | `kreuzberg` | Create `lib/<name>/pipeline/document_ingestor.rb` with `Config::Extraction`, `Config::Chunking`, `Config::Ocr`, `HierarchyConfig` stubs; feeds `result.content` → `LinguisticChunker` |
    | `pragmatic_segmenter` | Create `lib/<name>/pipeline/linguistic_chunker.rb` with sentence-boundary segmentation + SHA256 idempotency key |
    | `informers` | Lock embedding dimension at 384 (`all-MiniLM-L6-v2`) in the migration; annotate with model name |
    | `ruby_llm` (for embeddings) | Lock embedding dimension at 1536 in the migration; add circuit_breaker wrapper stub |
@@ -47,12 +48,13 @@ Files created:
   - db/migrations/001_create_sfl_schema.rb — documents, sentences, clauses, HNSW + GIN indexes
   - db/migrations/002_... — <if applicable>
   - lib/<name>/cache/ohm_hierarchy.rb — Paragraph→Sentence→Word hot storage
+  - lib/<name>/pipeline/document_ingestor.rb — kreuzberg extraction (PDF/DOCX/XLSX/OCR) → content handoff
   - lib/<name>/pipeline/linguistic_chunker.rb — pragmatic_segmenter + SHA256
   - lib/<name>/nlp/sfl_mapping.rb — WORDNET_TO_SFL_PROCESS + PARTICIPANT_ROLES
   - lib/<name>/tools/search_sfl_tool.rb — fast-mcp stub
   - ...
 Idempotency: content_hash (SHA256) on sentences + clauses | Redis key in OhmSentence | N/A
-SFL metafunctions encoded: ideational (process_type enum, ideational_structure JSONB) | interpersonal (mood_type, interpersonal_structure JSONB) | textual (theme_type, thematic_structure JSONB) | N/A
+SFL metafunctions encoded: ideational (process_type enum, ideational_structure JSONB) | interpersonal (mood_type, interpersonal_structure JSONB) | textual (theme_type, textual_structure JSONB) | N/A
 Neo4j outbox: yes (graph_sync_outbox migration) | no
 Ready for Step 5: yes
 ```

@@ -16,7 +16,7 @@ Before generating any implementation code:
    This is not optional — generate no library-specific code until API syntax is confirmed
    or a `[WARNING: Unverified API Syntax]` block has been injected.
 
-2. **Identify architectural plane**: reasoning, retrieval, NLP, or transport?
+2. **Identify architectural plane**: reasoning, retrieval, NLP, neuro-symbolic, or transport?
 
 3. **Confirm async context**: will this run inside an `Async` block?
    If yes → non-blocking patterns required.
@@ -36,6 +36,39 @@ Output: recommendation + minimal snippet. No full file unless asked.
 Split the request. Handle the GenAI component here. State explicitly:
 "Handling the RAG pipeline component. The TUI dashboard component should be
 addressed with tui."
+
+## Architectural Plane Reference
+
+| Plane | Gems | Scope |
+|---|---|---|
+| **reasoning** | `ruby_llm`, `dspy.rb`, `ruby_llm-schema` | LLM agents, tool calling, structured output, SFL annotation |
+| **retrieval** | `ruby_llm`, `informers`, `pgvector`, `sequel` | Embedding generation, RAG, RRF hybrid search, reranking |
+| **NLP** | `ruby-spacy`, `pragmatic_segmenter`, `ruby-wordnet`, `lingua` | Token extraction, POS/dep/NER, morphology, process classification |
+| **neuro-symbolic** | `ruby-spacy` + `ruby_llm-schema` + `sequel` + `pgvector` | SFL annotation pipeline: symbolic parse → LLM schema-constrained annotation → clause-level storage |
+| **transport** | `fast-mcp`, `async`, `circuit_breaker` | MCP servers, async concurrency, resilience |
+
+**Neuro-symbolic plane**: The combination of symbolic NLP (`ruby-spacy` dependency parse → `ruby-wordnet` process classification) with neural annotation (`ruby_llm` + `ruby_llm-schema` `IdeationalSchema`) and neural retrieval (`informers` embeddings + `pgvector` RRF). Always delegate schema/storage concerns to `agentic-data-engineer`. Handle only the LLM annotation and agent orchestration layers here.
+
+**ruby_llm-schema SFL annotation pattern** (neuro-symbolic core):
+```ruby
+class IdeationalSchema < RubyLLM::Schema
+  string :process_type, enum: %w[material mental relational verbal behavioural existential]
+  array  :participants do
+    object do
+      string :role   # Actor, Goal, Senser, Phenomenon, Carrier, Attribute, Sayer
+      string :text
+      array  :token_indices, of: :integer
+    end
+  end
+  array :circumstances do
+    object { string :type; string :text }
+  end
+end
+# Usage: @chat.with_schema(IdeationalSchema).ask(clause_prompt).content
+```
+
+**Compound prompts involving schema/storage**: Split the request. State explicitly:
+"Handling the LLM annotation/agent component. The schema/pipeline component should be addressed with `agentic-data-engineer`."
 
 ## Patterns Reference
 
