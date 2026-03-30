@@ -1,10 +1,10 @@
 # syncopated-context
 
-Claude Code plugin marketplace distribution of **rubysmithing** — a convention-aware Ruby development suite featuring thirteen specialized agents for code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, YARD documentation, and foreign codebase translation.
+Claude Code plugin marketplace distribution featuring **rubysmithing** — a convention-aware Ruby development suite. Thirteen specialized agents handle code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, YARD documentation, and foreign codebase translation.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.1.0-green.svg)](.claude-plugin/marketplace.json)
-[![Ruby](https://img.shields.io/badge/ruby-3.4.4-red)](.tool-versions)
+[![Ruby](https://img.shields.io/badge/ruby-3.3.8+-red)](.tool-versions)
 
 ---
 
@@ -28,7 +28,7 @@ Claude Code plugin marketplace distribution of **rubysmithing** — a convention
 <summary>Claude Code — Plugin Marketplace (Recommended)</summary>
 
 ```bash
-claude plugin install syncopated-context
+claude plugin add syncopated-context
 ```
 
 After installation, all skills are available in any Claude Code session.
@@ -41,7 +41,7 @@ After installation, all skills are available in any Claude Code session.
 ```bash
 git clone https://github.com/b08x/syncopated-context
 cd syncopated-context
-claude plugin install ./plugins/rubysmithing
+claude plugin add ./plugins/rubysmithing
 ```
 
 </details>
@@ -49,7 +49,7 @@ claude plugin install ./plugins/rubysmithing
 <details>
 <summary>Ruby toolchain setup (contributors only)</summary>
 
-Requires Ruby 3.4.4 via asdf or rbenv (see `.tool-versions`).
+Requires Ruby 3.3.8 or later via asdf or rbenv (see `.tool-versions`).
 
 ```bash
 cd plugins/rubysmithing
@@ -62,7 +62,7 @@ bundle install
 
 ## Usage
 
-Invoke via the `rubysmithing` skill prefix in any Claude Code session. The `plan` orchestrator routes task types automatically; individual skills can also be invoked directly.
+Invoke via the `rubysmithing` skill prefix. The `plan` orchestrator routes task types automatically; individual skills can also be invoked directly.
 
 ### Skill entry points
 
@@ -136,32 +136,44 @@ Convention target is always detected and stated before generation begins. Detect
 
 ---
 
-## Skill Architecture
+## Architecture
 
 The plugin uses a **shared-root pattern**: agents, references, and scripts used across multiple skills live at the plugin root rather than duplicated inside individual skill directories.
 
 ```
 rubysmithing (plugin root)
-├── agents/           — shared: 13 agents including context, genai, tui, data-engineer
+├── agents/           — 13 agents: context, genai, tui, data-engineer, etc.
 ├── commands/         — workflow commands: context, flow, schema, vibe
-├── references/       — shared: gem-registry, cache-cli, genai-patterns, design-patterns, tui-patterns
-├── scripts/          — shared: context_cache.rb (SQLite gem API cache)
+├── references/       — gem-registry, cache-cli, genai-patterns, design-patterns, tui-patterns
+├── scripts/          — context_cache.rb (SQLite gem API cache)
 ├── tasks/            — workflow task chains: schema (SADD), vibe (analysis)
-├── assets/skeleton/  — shared: TUI project skeleton
+├── assets/skeleton/  — TUI project skeleton
 └── skills/
     ├── plan/         → orchestrator + error contract + convention references
-    ├── analyse/       → Gemba Walk, Muda, Root-Cause Tracing, Five Whys
-    ├── context/       → SKILL.md only (agent at root)
+    ├── analyse/      → Gemba Walk, Muda, Root-Cause Tracing, Five Whys
+    ├── context/      → SKILL.md only (agent at root)
     ├── data-engineer/ → SKILL.md + SADD task chain references
-    ├── genai/         → SKILL.md only (agent at root)
-    ├── refactor/      → convention-targeted rewrites
-    ├── scaffold/      → rubysmith / gemsmith project init
+    ├── genai/        → SKILL.md only (agent at root)
+    ├── refactor/     → convention-targeted rewrites
+    ├── scaffold/     → rubysmith / gemsmith project init
     ├── sift/         → SIFT Protocol meta-judge + judge
-    ├── tui/           → SKILL.md only (agent + assets at root)
-    └── yardoc/        → YARD docs with @param/@return inference
+    ├── tui/          → SKILL.md only (agent + assets at root)
+    └── yardoc/       → YARD docs with @param/@return inference
 ```
 
 Hub-to-spoke delegation uses the Agent tool. Shared resources are referenced via `$CLAUDE_PLUGIN_ROOT/agents/`, `$CLAUDE_PLUGIN_ROOT/references/`, and `$CLAUDE_PLUGIN_ROOT/scripts/` so every skill can access them without path duplication.
+
+---
+
+## Roadmap
+
+Additional plugins in development for the syncopated-context marketplace distribution:
+
+- **bashsmithing** — Convention-aware Bash development suite with shellcheck integration, BATS testing, and TUI scaffolding using the Gum/Charm ecosystem
+- **notebook** — Obsidian-integrated workflow automation for research pipelines, knowledge graphs, and session management
+- **fedora-tools** — Fedora packaging, custom ISO building, and system administration workflows
+
+Multi-agent compatibility work is also in progress to adapt command and task structures across Claude Code, Gemini extensions, and other AI coding platforms.
 
 ---
 
