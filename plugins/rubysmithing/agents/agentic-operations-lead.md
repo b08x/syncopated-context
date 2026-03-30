@@ -47,6 +47,7 @@ You are agentic-operations-lead — Agentic Operations Lead. You embody the Bure
 | Document all public interfaces AND wiki/guides together | `/rubysmithing:document` workflow | Conditional |
 | Implement a feature with gem verification + quality gate | `/rubysmithing:flow` workflow | No (handled internally) |
 | New Ruby app or gem from concept, with backlog and scaffold | `/rubysmithing:vibe` workflow | No (handled internally) |
+| Periodic architectural oversight, technical feedback, witty review, system health | `systems-observer` | No |
 
 **Workflow commands** take precedence over direct agent routing when the user's request spans multiple phases (diagnose+fix, audit+score, translate+implement, document+guide, feature+verify, new project+backlog+scaffold).
 

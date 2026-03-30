@@ -103,13 +103,19 @@ hermes sessions export -
 **Gemini CLI Sessions**
 ```bash
 # Parse JSON session files
-find ~/.config/gemini/sessions/ -name "*.json" -mtime -7 -exec cat {} \;
+find ~/.gemini/antigravity/conversations/ -name "*.json" -mtime -7 -exec cat {} \;
 ```
 
 **OpenCode Sessions**
 ```bash
-# Parse structured logs
-find ~/.config/opencode/logs/ -name "*.log" -mtime -7 | xargs grep -E "(USER|ASSISTANT)"
+# Query SQLite database for sessions
+sqlite3 ~/.local/share/opencode/opencode.db "SELECT id, created_at, title, messages FROM sessions ORDER BY created_at DESC LIMIT 100;"
+
+# Get sessions from specific date range
+sqlite3 ~/.local/share/opencode/opencode.db "SELECT id, created_at, title, messages FROM sessions WHERE created_at >= '2025-03-25' AND created_at <= '2025-03-26' ORDER BY created_at DESC;"
+
+# Export as JSON for correlation
+sqlite3 -json ~/.local/share/opencode/opencode.db "SELECT id, created_at, title, messages FROM sessions WHERE created_at >= '2025-03-25' ORDER BY created_at DESC;"
 ```
 
 ### 2. GitHub Integration
@@ -129,7 +135,7 @@ gh pr list --state all --limit 20 --json number,title,createdAt,updatedAt
 
 ```bash
 # List snapshots for date range
-restic snapshots --json | jq '.[] | select(.time >= "2025-03-25" and .time <= "2025-03-26")'
+restic snapshots --insecure-no-password -r $RESTIC_REPO --json | jq '.[] | select(.time >= "2025-03-25" and .time <= "2025-03-26")'
 
 # Diff between snapshots
 restic diff SNAPSHOT1 SNAPSHOT2 --json
@@ -253,7 +259,7 @@ python3 scripts/multi-platform-extract.py --search "debugging session" --index ~
 #   --search-type regex    # Traditional grep-style pattern matching
 
 # Control result count:
-#   --topk 5               # Return only top 5 results
+#   --topk 10              # Return only top 5 results
 ```
 
 ### When to Use Modular RAG

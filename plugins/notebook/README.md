@@ -1,6 +1,6 @@
 # notebook
 
-Multi-platform AI session recall and analysis suite for Claude Code. Comprehensive session aggregation across Claude Code, Hermes, Gemini CLI, and OpenCode with GitHub commit correlation, restic backup diff analysis, and intelligent synthesis.
+Multi-platform AI session recall and analysis suite. Aggregates interactions from Claude Code, Hermes, Gemini CLI, and OpenCode with GitHub commit correlation, restic backup diff analysis, and intelligent action synthesis.
 
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](.claude-plugin/plugin.json)
 [![Category](https://img.shields.io/badge/category-productivity-blue.svg)](.claude-plugin/plugin.json)
@@ -153,7 +153,7 @@ notebook/
 │   ├── notebooklm/                       — document processing workflows
 │   └── query/                            — Obsidian CLI and ck-search integration
 └── .claude-plugin/
-    └── plugin.json                       — plugin metadata
+    └── plugin.json                        — plugin metadata
 ```
 
 ### Correlation Engine
@@ -205,11 +205,11 @@ Gemini CLI      | 1        | 2025-03-29             | code review
 ### One Thing Synthesis
 
 ```
-🎯 ONE THING: Complete the session timeout fix from your Hermes debugging
+ONE THING: Complete the session timeout fix from your Hermes debugging
 session by merging PR #23 and updating the auth middleware tests based on
 your Claude Code session insights.
 
-💡 Reasoning: Highest momentum topic spanning 3 platforms with recent GitHub
+Reasoning: Highest momentum topic spanning 3 platforms with recent GitHub
 activity and unblocked path to completion.
 ```
 
@@ -217,24 +217,26 @@ activity and unblocked path to completion.
 
 ## Configuration
 
-The recall skill supports customization via arguments:
-
 ### Date Expressions
+
 - Relative: `yesterday`, `today`, `last week`, `this week`
 - Absolute: `2025-03-25`, `2025-03-20 to 2025-03-25`
 - Relative with offset: `3 days ago`, `last 7 days`
 
 ### Platform Filtering
+
 - Single platform: `platform:hermes`, `platform:claude`
 - Multiple platforms: `platform:hermes platform:gemini`
 - All platforms: default behavior when no platform specified
 
 ### Integration Options
+
 - GitHub: `--github owner/repo`
 - Backup analysis: `--backup ~/path/to/workspace`
 - Combined: `--github myrepo --backup ~/Workspace`
 
 ### Graph Options
+
 - File threshold: `--min-files 5` (sessions touching 5+ files)
 - Message threshold: `--min-msgs 3` (sessions with 3+ messages)
 - Project scope: `--all-projects` (scan beyond current directory)
@@ -247,28 +249,19 @@ The recall skill supports customization via arguments:
 
 **Hermes sessions not found:**
 ```bash
-# Check Hermes CLI availability
 hermes sessions list
-
-# Export sessions manually
 hermes sessions export --format jsonl --days 7
 ```
 
 **Gemini CLI sessions missing:**
 ```bash
-# Check session directory
 ls ~/.config/gemini/sessions/
-
-# Verify JSON format
 cat ~/.config/gemini/sessions/latest.json
 ```
 
 **OpenCode logs inaccessible:**
 ```bash
-# Check log directory permissions
 ls -la ~/.config/opencode/logs/
-
-# Verify structured format
 head -20 ~/.config/opencode/logs/latest.log
 ```
 

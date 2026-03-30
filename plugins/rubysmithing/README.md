@@ -2,7 +2,7 @@
 
 # rubysmithing
 
-Convention-aware Ruby development suite for Claude Code — thirteen specialized agents covering code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, and foreign codebase translation.
+Convention-aware Ruby development suite for Claude Code — fourteen specialized agents covering code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, foreign codebase translation, and architectural oversight.
 
 ![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Ruby](https://img.shields.io/badge/ruby-3.4.4-red)
@@ -76,6 +76,7 @@ The suite runs thirteen specialized agents organized into five layers. Each agen
 | `director-of-ai-risk` | Pre-evaluation YAML rubric specification | The Specifier — risk-averse, rigid |
 | `compliance-guardrail-agent` | Rubric application with file:line evidence, PASS/FAIL verdict | The Evaluator — punitive, strict |
 | `senior-qa-engineer` | SIFT Protocol QA reports, architectural reviews | The Pragmatist — analytical, holistic |
+| `systems-observer` | Periodic architectural oversight, technical feedback, system health | The Witty Architect — insightful, sharp |
 
 ### Documentation & Translation
 
@@ -287,7 +288,8 @@ plugins/rubysmithing/
 │   ├── senior-qa-engineer.md
 │   ├── developer-experience-engineer.md
 │   ├── agentic-data-engineer.md
-│   └── senior-backend-architect.md
+│   ├── senior-backend-architect.md
+│   └── systems-observer.md
 ├── commands/                    # Workflow commands
 │   ├── context.md
 │   ├── flow.md
