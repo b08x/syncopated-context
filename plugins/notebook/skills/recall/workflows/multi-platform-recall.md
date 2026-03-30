@@ -182,7 +182,7 @@ def fetch_github_data(repo, date_range):
 def analyze_backup_diffs(backup_path, date_range):
     """Analyze restic backup diffs for file changes."""
     # Get snapshots in date range
-    snapshots_cmd = "restic snapshots --json"
+    snapshots_cmd = "restic snapshots --insecure-no-password -r $RESTIC_REPO --json"
     snapshots_result = subprocess.run(snapshots_cmd, shell=True, capture_output=True, text=True)
     snapshots = json.loads(snapshots_result.stdout)
 
