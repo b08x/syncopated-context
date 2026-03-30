@@ -1,0 +1,189 @@
+---
+name: recall
+description: Use when user asks to recall work across multiple AI platforms (Claude Code, Gemini CLI, OpenCode, Hermes), correlate with GitHub activity, or analyze file changes from backups. Handles temporal queries, topic searches, and cross-platform session aggregation. Triggers on "recall", "what did we work on", "session history across platforms", "multi-platform recall", "GitHub commits", "backup diffs", "restic changes".
+argument-hint: [yesterday|today|last week|TOPIC|platform:PLATFORM_NAME|github:REPO|backup:PATH]
+allowed-tools: Bash(python3:*), Bash(hermes:*), Bash(gemini:*), Bash(opencode:*), Bash(gh:*), Bash(restic:*)
+---
+
+# Multi-Platform Recall Skill
+
+Comprehensive session recall across Claude Code, Gemini CLI, OpenCode, and Hermes with GitHub activity correlation and backup diff analysis. Every recall ends with the **One Thing** - a concrete, highest-leverage next action synthesized from cross-platform results.
+
+## What It Does
+
+- **Multi-platform session aggregation**: Extracts and correlates sessions from all major AI platforms
+- **GitHub integration**: Pulls commit history, PR activity, and file changes for contextual insights
+- **Backup correlation**: Analyzes restic incremental diffs to show file evolution over time
+- **Temporal correlation**: Aligns session timestamps with commits and file changes
+- **Cross-platform synthesis**: Identifies work patterns and connections across different tools
+- **One Thing generation**: Synthesizes the single most impactful next action from all sources
+
+## Platform Session Locations
+
+| Platform | Session Storage | Export Command | Format |
+|----------|----------------|----------------|--------|
+| Claude Code | `~/.claude/projects/*/` | Native JSONL parsing | JSONL |
+| Hermes | SQLite store | `hermes sessions export` | JSONL |
+| Gemini CLI | `~/.config/gemini/sessions/` | JSON file parsing | JSON |
+| OpenCode | `~/.config/opencode/logs/` | Log file parsing | Structured logs |
+
+## Common Baseline Failure Patterns
+
+Based on testing, agents without this skill exhibit these failures:
+
+| Failure Pattern | Agent Rationalization | Reality |
+|-----------------|----------------------|---------|
+| "I can only search current directory" | "Assumes user is in wrong repo" | Need to access platform-specific storage locations |
+| "Cannot access other AI tools" | "No capability to read session files" | Each platform has documented storage and export methods |
+| "GitHub requires authentication" | "Assumes complex API integration needed" | `gh cli` handles auth and provides simple commands |
+| "Backup analysis too complex" | "Restic integration unclear" | Restic has straightforward diff commands |
+| "Generic next steps instead of actual data" | "Better to give advice than admit limitations" | Users need actual session content, not suggestions |
+
+## Anti-Rationalization Guards
+
+**Red Flags - STOP and Use This Skill:**
+- "I can only search the current directory"
+- "I don't have access to your other AI tools"
+- "GitHub integration would require complex setup"
+- "Let me suggest some next steps instead"
+- "You should manually check your sessions"
+- "Multi-platform capabilities don't exist in the current skill"
+- "The expanded features aren't implemented yet"
+
+**Reality Check:** Every major AI platform provides session export/access. This skill documents exactly how AND provides the implementation script.
+
+**If you catch yourself saying these things:**
+1. Check the query classification in `workflows/recall.md`
+2. Look for multi-platform indicators (mentions of "platforms", "across tools", etc.)
+3. Use `multi-platform-extract.py` script instead of falling back to Claude-only recall
+4. The script exists at `scripts/multi-platform-extract.py` - use it
+
+**Critical:** Don't fall back to old behavior when user asks for multi-platform recall. Use the expanded implementation.
+
+## Usage Patterns
+
+### Temporal Recall
+```
+/recall yesterday                    # All platforms, yesterday
+/recall last week across platforms   # Multi-platform aggregation
+/recall 2025-03-25 with github      # Include GitHub activity
+/recall this week with backups      # Include restic diffs
+```
+
+### Platform-Specific
+```
+/recall platform:hermes last 3 days # Hermes only
+/recall platform:gemini auth work   # Gemini sessions on "auth"
+/recall platform:claude code review # Claude Code sessions on "code review"
+```
+
+### Integrated Analysis
+```
+/recall github:myrepo auth commits   # GitHub commits + related sessions
+/recall backup:~/Workspace changes  # File changes + session correlation
+/recall cross-platform debugging    # All sources for "debugging" topic
+```
+
+## Implementation
+
+### 1. Platform Session Extraction
+
+**Claude Code (Current Implementation)**
+```python
+# Use existing extract-sessions.py
+python3 scripts/extract-sessions.py --days 7 --source ~/.claude/projects/PROJECT
+```
+
+**Hermes Sessions**
+```bash
+# Export to JSONL
+hermes sessions export --format jsonl --output hermes_sessions.jsonl --days 7
+```
+
+**Gemini CLI Sessions**
+```bash
+# Parse JSON session files
+find ~/.config/gemini/sessions/ -name "*.json" -mtime -7 -exec cat {} \;
+```
+
+**OpenCode Sessions**
+```bash
+# Parse structured logs
+find ~/.config/opencode/logs/ -name "*.log" -mtime -7 | xargs grep -E "(USER|ASSISTANT)"
+```
+
+### 2. GitHub Integration
+
+```bash
+# Get commits for date range
+gh api repos/:owner/:repo/commits --method GET \
+  --field since="2025-03-25T00:00:00Z" \
+  --field until="2025-03-26T23:59:59Z" \
+  --jq '.[] | {sha: .sha, message: .commit.message, date: .commit.author.date}'
+
+# Get PR activity
+gh pr list --state all --limit 20 --json number,title,createdAt,updatedAt
+```
+
+### 3. Restic Backup Correlation
+
+```bash
+# List snapshots for date range
+restic snapshots --json | jq '.[] | select(.time >= "2025-03-25" and .time <= "2025-03-26")'
+
+# Diff between snapshots
+restic diff SNAPSHOT1 SNAPSHOT2 --json
+```
+
+### 4. Temporal Correlation Engine
+
+```python
+# Correlate sessions with commits and file changes
+def correlate_timeline(sessions, commits, backup_diffs):
+    timeline = []
+    for session in sessions:
+        session_time = parse_timestamp(session['timestamp'])
+
+        # Find nearby commits (±30 minutes)
+        nearby_commits = [c for c in commits
+                         if abs(parse_timestamp(c['date']) - session_time).seconds < 1800]
+
+        # Find file changes from backups
+        relevant_changes = [d for d in backup_diffs
+                           if session_overlaps_files(session, d['changed_files'])]
+
+        timeline.append({
+            'session': session,
+            'commits': nearby_commits,
+            'file_changes': relevant_changes
+        })
+
+    return timeline
+```
+
+### 5. Cross-Platform Synthesis
+
+The **One Thing** synthesis process:
+1. **Pattern Detection**: Identify common themes across platforms
+2. **Momentum Analysis**: What has forward progress vs. what's stalled
+3. **Blocker Identification**: What's preventing completion
+4. **Leverage Calculation**: Highest-impact next action
+
+## Workflow
+
+See `workflows/multi-platform-recall.md` for complete routing logic and step-by-step correlation process.
+
+## Integration with Persistent Memory
+
+When configured with the memory system:
+- Cross-platform patterns stored as user memories
+- Failed correlation attempts stored as feedback memories
+- Project-specific session insights stored as project memories
+- Platform usage patterns tracked for optimization
+
+## Performance Notes
+
+- **Session extraction**: Parallel processing across platforms (~30 seconds for 7 days)
+- **GitHub API**: Rate limited to 5000 requests/hour
+- **Restic operations**: I/O bound, cache snapshot lists
+- **Correlation engine**: Memory intensive for large datasets, use streaming for >1000 sessions

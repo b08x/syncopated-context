@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "syncopated-context",
-  "version": "2.1.0",
-  "description": "Convention-aware Ruby development suite for Claude Code. 13 specialized agents by job function with 6 workflow commands (diagnose, audit, translate, document, flow, vibe). Hub-and-spoke architecture with SDD-style task pipelines.",
+  "version": "2.2.0",
+  "description": "Multi-platform development suite for Claude Code. Ruby-focused rubysmithing plugin with 13 specialized agents, plus notebook plugin for AI session recall across platforms (Claude Code, Hermes, Gemini CLI, OpenCode) with GitHub and backup integration.",
   "owner": {
     "name": "Robert Pannick",
     "email": "rwpannick@gmail.com"
@@ -18,6 +18,17 @@
       },
       "source": "./plugins/rubysmithing",
       "category": "development"
+    },
+    {
+      "name": "notebook",
+      "description": "Multi-platform AI session recall and analysis suite. Comprehensive recall skill supporting Claude Code, Hermes, Gemini CLI, and OpenCode with GitHub commit correlation and restic backup diff analysis. Features temporal correlation, cross-platform synthesis, and 'One Thing' action generation. Includes notebooklm integration for document processing and query capabilities.",
+      "version": "2.0.0",
+      "author": {
+        "name": "Robert Pannick",
+        "email": "rwpannick@gmail.com"
+      },
+      "source": "./plugins/notebook",
+      "category": "productivity"
     }
   ]
 }
