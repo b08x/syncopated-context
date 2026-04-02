@@ -32,6 +32,13 @@ from typing import Dict, List, Optional, Any, Literal
 from dataclasses import dataclass, asdict
 from collections import defaultdict
 
+# =============================================================================
+# DSPY CONFIGURATION - Environment Variables
+# =============================================================================
+
+DSPY_PROVIDER = os.environ.get('RECALL_DSPY_PROVIDER', 'openrouter')
+DSPY_MODEL = os.environ.get('RECALL_DSPY_MODEL', 'openai/gpt-4.1-nano')
+
 
 # =============================================================================
 # NORMALIZED SCHEMA (matches TypeScript ParsedSession)
@@ -162,14 +169,18 @@ if DSPY_AVAILABLE:
         
         Combines sessions from multiple AI platforms, GitHub commits,
         and file changes into a unified timeline with actionable insights.
+        
+        STRICT REQUIREMENT: Identify workstreams ONLY if backed by a commit,
+        multiple file changes, or substantial session content in the current window.
+        Do NOT hype new directories or untracked artifacts (??) as "Initiatives."
         """
         
         sessions: List[Dict] = dspy.InputField(desc="List of session data with platform, summary, and timestamp")
         commits: List[Dict] = dspy.InputField(desc="List of git commits with message and sha")
         file_changes: List[Dict] = dspy.InputField(desc="List of file changes from backup analysis")
-        narrative: str = dspy.OutputField(desc="Coherent narrative of activities (2-3 sentences per platform)")
-        workstreams: List[str] = dspy.OutputField(desc="Distinct workstreams identified (e.g., ['authentication', 'api', 'testing'])")
-        next_actions: List[str] = dspy.OutputField(desc="Suggested next actions, specific and actionable")
+        narrative: str = dspy.OutputField(desc="Coherent narrative of activities (2-3 sentences per platform). Focus on kinetic energy (work done), not potential (new folders).")
+        workstreams: List[str] = dspy.OutputField(desc="Distinct workstreams identified. MUST be backed by session volume or commits. Label untracked folders as 'Untracked Artifacts'.")
+        next_actions: List[str] = dspy.OutputField(desc="Suggested next actions, specific and actionable. Derived from current momentum.")
 
 
     class OneThingGenerator(dspy.Signature):
@@ -1043,11 +1054,15 @@ class MultiSourceCorrelator:
         # Sort by timestamp
         return sorted(timeline, key=lambda x: x.get("timestamp") or datetime.min.replace(tzinfo=timezone.utc))
     
-    def configure_dspy(self, model: str = "openai/gpt-4o-mini", api_key: Optional[str] = None):
+    def configure_dspy(self, model: Optional[str] = None, api_key: Optional[str] = None):
         """Configure DSPy with specified language model.
         
+        Uses RECALL_DSPY_PROVIDER and RECALL_DSPY_MODEL environment variables
+        as defaults. Falls back to openrouter/openai/gpt-4.1-nano if not set.
+        
         Args:
-            model: Model identifier (e.g., "openai/gpt-4o-mini", "anthropic/claude-sonnet-4-5-20250929")
+            model: Model identifier. If None, uses RECALL_DSPY_MODEL env var.
+                   Format: "<provider>/<model>" (e.g., "openai/gpt-4.1-nano")
             api_key: Optional API key (will use env var if not provided)
         
         Returns:
@@ -1056,18 +1071,51 @@ class MultiSourceCorrelator:
         if not DSPY_AVAILABLE:
             return False
         
+        # Use env vars as defaults
+        provider = DSPY_PROVIDER
+        model_id = model or DSPY_MODEL
+        
         try:
-            # Support multiple providers
-            if model.startswith("openai/"):
-                lm = dspy.LM(model, api_key=api_key)
-            elif model.startswith("anthropic/"):
-                lm = dspy.LM(model, api_key=api_key)
-            elif model.startswith("ollama/"):
-                # Local Ollama models
-                _, model_name = model.split("/", 1)
+            # Handle OpenRouter provider
+            if provider == 'openrouter':
+                api_key = api_key or os.environ.get('OPENROUTER_API_KEY')
+                if not api_key:
+                    print("  [dspy] OPENROUTER_API_KEY not set")
+                    return False
+                
+                # Format: openrouter/<model-id> where model-id includes provider
+                # e.g., "openrouter/openai/gpt-4.1-nano"
+                lm = dspy.LM(
+                    f"openrouter/{model_id}",
+                    api_key=api_key,
+                    base_url="https://openrouter.ai/api/v1"
+                )
+            
+            # Handle OpenAI provider directly
+            elif provider == 'openai':
+                api_key = api_key or os.environ.get('OPENAI_API_KEY')
+                if not api_key:
+                    print("  [dspy] OPENAI_API_KEY not set")
+                    return False
+                lm = dspy.LM(model_id, api_key=api_key)
+            
+            # Handle Anthropic provider
+            elif provider == 'anthropic':
+                api_key = api_key or os.environ.get('ANTHROPIC_API_KEY')
+                if not api_key:
+                    print("  [dspy] ANTHROPIC_API_KEY not set")
+                    return False
+                lm = dspy.LM(model_id, api_key=api_key)
+            
+            # Handle local Ollama
+            elif provider == 'ollama':
+                _, model_name = model_id.split("/", 1) if "/" in model_id else ("", model_id)
                 lm = dspy.LM(f"ollama_chat/{model_name}")
+            
+            # Generic fallback
             else:
-                lm = dspy.LM(model)
+                api_key = api_key or os.environ.get(f"{provider.upper()}_API_KEY")
+                lm = dspy.LM(f"{provider}/{model_id}", api_key=api_key)
             
             dspy.configure(lm=lm)
             return True
@@ -1075,11 +1123,11 @@ class MultiSourceCorrelator:
             print(f"  [dspy] Configuration error: {e}")
             return False
     
-    def correlate_with_dspy(self, timeline: List[Dict], model: str = "openai/gpt-4o-mini") -> Dict:
+    def correlate_with_dspy(self, timeline: List[Dict], model: Optional[str] = None) -> Dict:
         """Use DSPy to generate correlated narrative and next actions.
         
         Multi-stage pipeline:
-        1. Configure LM with specified model
+        1. Configure LM with specified model (or env var default)
         2. Synthesize timeline from sessions + commits + file changes
         3. Generate One Thing recommendation
         

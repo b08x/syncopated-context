@@ -164,6 +164,42 @@ class OneThingGenerator(dspy.Signature):
 
 **Fallback**: If DSPy unavailable, heuristic-based synthesis is used.
 
+### DSPy Configuration
+
+Environment variables control the LLM used for DSPy-powered synthesis:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `RECALL_DSPY_PROVIDER` | `openrouter` | LLM provider (openrouter, openai, anthropic, ollama) |
+| `RECALL_DSPY_MODEL` | `openai/gpt-4.1-nano` | Model identifier for synthesis |
+
+```bash
+# OpenRouter (default) - model includes provider prefix
+export RECALL_DSPY_PROVIDER=openrouter
+export RECALL_DSPY_MODEL=openai/gpt-4.1-nano  # Format: <provider>/<model>
+
+# Direct OpenAI
+export RECALL_DSPY_PROVIDER=openai
+export RECALL_DSPY_MODEL=gpt-4o-mini
+
+# Anthropic
+export RECALL_DSPY_PROVIDER=anthropic
+export RECALL_DSPY_MODEL=claude-sonnet-4-5-20250929
+
+# Local Ollama
+export RECALL_DSPY_PROVIDER=ollama
+export RECALL_DSPY_MODEL=llama3.2
+```
+
+DSPy LM configuration follows this pattern:
+```python
+lm = dspy.LM(
+    "openrouter/openai/gpt-4.1-nano",  # Format: openrouter/<model-id>
+    api_key="...",
+    base_url="https://openrouter.ai/api/v1"
+)
+```
+
 ## Implementation Details
 
 ### Stage 1: Multi-Provider Extraction
@@ -259,6 +295,18 @@ Found 12 matching sessions
 /recall backup:~/Workspace changes  # File changes + session correlation
 /recall cross-platform debugging    # All sources for "debugging" topic
 ```
+
+## Anti-Hallucination & Evidence-Based Synthesis
+
+To prevent "Strategic Hype" or parroting of template content, the following rules apply to all synthesis operations:
+
+- **Evidence Requirement**: A "Workstream" or "Initiative" MUST be backed by at least one of:
+    - A Git commit within the requested timeframe.
+    - At least 5 assistant messages of substantial content in a normalized session.
+    - Explicit file modifications (not just creation) documented in `file_changes`.
+- **Template Isolation**: Never carry over "Active Projects" or "Next Actions" from a previous dashboard or template unless they are validated by *current* session data.
+- **The "?? " Rule**: Items found in `git status` as untracked (??) are "Environmental Noise" and should be listed as "Potential Future Work" or "Untracked Artifacts," NOT as active initiatives.
+- **Zero Tolerance for Fluff**: If the last 3 days were just "plumbing," the narrative must state "Infrastructure stabilization" rather than inventing "Strategic Pivot to [Folder Name]."
 
 ## Performance Notes
 

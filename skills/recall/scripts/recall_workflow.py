@@ -24,6 +24,10 @@ DEFAULT_DAYS = 7
 DEFAULT_PLATFORMS = ["claude", "hermes", "gemini", "opencode"]
 OUTPUT_DIR = Path("/tmp/recall-output")
 
+# Resolve paths relative to this script's directory (not cwd)
+SCRIPT_DIR = Path(__file__).parent.resolve()
+NORMALIZED_SESSIONS_SCRIPT = SCRIPT_DIR / "normalized_sessions.py"
+
 
 # =============================================================================
 # WORKFLOW STAGES
@@ -56,7 +60,7 @@ def stage_extract(days: int, platforms: list, output_path: Path) -> bool:
     
     cmd = [
         "python3",
-        "scripts/normalized_sessions.py",
+        str(NORMALIZED_SESSIONS_SCRIPT),
         "extract",
         "--days", str(days),
         "--platforms", ",".join(platforms),
@@ -123,7 +127,7 @@ def stage_correlate(days: int, github_repo: str, output_path: Path, model: str =
     
     cmd = [
         "python3",
-        "scripts/normalized_sessions.py",
+        str(NORMALIZED_SESSIONS_SCRIPT),
         "correlate",
         "--days", str(days),
         "--model", model,
@@ -189,7 +193,7 @@ def stage_search(query: str, days: int, platforms: list) -> list:
     
     cmd = [
         "python3",
-        "scripts/normalized_sessions.py",
+        str(NORMALIZED_SESSIONS_SCRIPT),
         "search",
         query,
         "--days", str(days)
