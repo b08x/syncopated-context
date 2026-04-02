@@ -2,63 +2,239 @@
 name: recall
 description: Use when user asks to recall work across multiple AI platforms (Claude Code, Gemini CLI, OpenCode, Hermes), correlate with GitHub activity, or analyze file changes from backups. Handles temporal queries, topic searches, and cross-platform session aggregation. Triggers on "recall", "what did we work on", "session history across platforms", "multi-platform recall", "GitHub commits", "backup diffs", "restic changes".
 argument-hint: [yesterday|today|last week|TOPIC|platform:PLATFORM_NAME|github:REPO|backup:PATH]
-allowed-tools: Bash(python3:*), Bash(hermes:*), Bash(gemini:*), Bash(opencode:*), Bash(gh:*), Bash(restic:*)
+allowed-tools: Bash(python3:*), Bash(hermes:*), Bash(gemini:*), Bash(opencode:*), Bash(gh:*), Bash(restic:*), Bash(sqlite3:*)
 ---
 
 # Multi-Platform Recall Skill
 
 Comprehensive session recall across Claude Code, Gemini CLI, OpenCode, and Hermes with GitHub activity correlation and backup diff analysis. Every recall ends with the **One Thing** - a concrete, highest-leverage next action synthesized from cross-platform results.
 
+## Architecture Overview
+
+This skill uses a **normalized extraction layer** that unifies session data from all providers into a common `ParsedSession` schema, enabling:
+
+- **Provider-agnostic queries**: Same analysis works across all platforms
+- **Schema consistency**: Unified field names, timestamp formats, usage metrics
+- **Cross-platform correlation**: Sessions from different tools can be compared
+- **DSPy-powered synthesis**: Structured LLM calls for narrative generation
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Claude Code    │     │   Gemini CLI     │     │    Hermes       │
+│  JSONL files    │     │   JSON files     │     │   SQLite DB    │
+└────────┬────────┘     └────────┬─────────┘     └────────┬────────┘
+         │                       │                         │
+         └───────────────────────┼─────────────────────────┘
+                                 ▼
+                    ┌───────────────────────┐
+                    │  Normalization Layer  │
+                    │  (ParsedSession)      │
+                    └───────────┬───────────┘
+                                ▼
+                    ┌───────────────────────┐
+                    │   DSPy Correlation    │
+                    │   Timeline Synthesis   │
+                    └───────────┬───────────┘
+                                ▼
+                    ┌───────────────────────┐
+                    │   GitHub + Restic      │
+                    │   Multi-Context        │
+                    └───────────────────────┘
+```
+
 ## What It Does
 
 - **Multi-platform session aggregation**: Extracts and correlates sessions from all major AI platforms
-- **GitHub integration**: Pulls commit history, PR activity, and file changes for contextual insights
-- **Backup correlation**: Analyzes restic incremental diffs to show file evolution over time
+- **Normalized schema**: All providers output identical `ParsedSession` structure
+- **GitHub integration**: Pulls commit history, PR activity for contextual insights
+- **Backup correlation**: Analyzes restic incremental diffs for file evolution
 - **Temporal correlation**: Aligns session timestamps with commits and file changes
-- **Cross-platform synthesis**: Identifies work patterns and connections across different tools
-- **One Thing generation**: Synthesizes the single most impactful next action from all sources
+- **DSPy synthesis**: Uses structured signatures for narrative generation
+- **One Thing generation**: Synthesizes single most impactful next action
 
 ## Platform Session Locations
 
-| Platform | Session Storage | Export Command | Format |
-|----------|----------------|----------------|--------|
-| Claude Code | `~/.claude/projects/*/` | Native JSONL parsing | JSONL |
-| Hermes | SQLite store | `hermes sessions export` | JSONL |
-| Gemini CLI | `~/.gemini/antigravity/conversations/` | JSON file parsing | JSON |
-| OpenCode | `~/.local/share/opencode/opencode.db` | SQLite query | SQLite |
+| Platform | Session Storage | Access Method | Format |
+|----------|----------------|---------------|--------|
+| Claude Code | `~/.claude/projects/<encoded_path>/*.jsonl` | Direct file read | JSONL |
+| Hermes | `~/.hermes/state.db` | SQLite read-only | SQLite |
+| Gemini CLI | `~/.gemini/tmp/<hash>/chats/*.json` | Direct file read | JSON |
+| OpenCode | `~/.local/share/opencode/opencode.db` | SQLite read-only | SQLite |
+
+**Critical Path Fixes:**
+
+- **Gemini**: Use `~/.gemini/tmp/<hash>/chats/*.json` (NOT `antigravity/conversations`)
+- **Hermes**: Direct SQLite access (NOT CLI export dependency)
+- **All providers**: Output unified `ParsedSession` schema
+
+## Workflow Script
+
+The primary interface is `scripts/recall_workflow.py` which orchestrates:
+
+```
+STAGE 1: EXTRACTION     → Multi-provider normalized extraction
+STAGE 2: CORRELATION    → GitHub + restic integration, timeline build
+STAGE 3: SEARCH         → Optional topic search across combined data
+STAGE 4: ONE THING      → DSPy synthesis of highest-leverage action
+```
+
+### Basic Usage
+
+```bash
+# Standard recall - last 7 days, all platforms
+python3 scripts/recall_workflow.py
+
+# Extended timeframe with GitHub integration
+python3 scripts/recall_workflow.py --days 14 --github-repo owner/repo
+
+# Topic search across platforms
+python3 scripts/recall_workflow.py --search "authentication work" --days 30
+
+# Specific platforms only
+python3 scripts/recall_workflow.py --platforms claude,hermes --days 7
+```
+
+### Output Structure
+
+```
+/tmp/recall-output/
+├── sessions_20260402_093000.json      # Extracted normalized sessions
+├── correlation_20260402_093000.json   # Timeline + synthesis results
+└── search_results.json                 # (if --search used)
+```
+
+## Normalized Session Schema
+
+All providers output this unified structure:
+
+```python
+@dataclass
+class ParsedSession:
+    id: str                              # Unique session identifier
+    project_path: str                    # Project directory path
+    project_name: str                    # Project name
+    summary: Optional[str]               # LLM-generated summary (if available)
+    generated_title: Optional[str]       # Extracted or generated title
+    title_source: Optional[str]         # 'insight' | 'first_message'
+    session_character: Optional[str]     # Agent personality (if applicable)
+    started_at: datetime                 # Session start timestamp
+    ended_at: datetime                   # Session end timestamp
+    message_count: int                   # Total messages
+    user_message_count: int              # User messages only
+    assistant_message_count: int        # Assistant messages only
+    tool_call_count: int                 # Tool invocations
+    compact_count: int                   # Context compaction events
+    auto_compact_count: int              # Automatic compactions
+    slash_commands: List[str]            # Slash commands used
+    git_branch: Optional[str]            # Active git branch
+    claude_version: Optional[str]         # Claude version (Claude Code only)
+    source_tool: str                     # Provider name
+    usage: SessionUsage                  # Token usage metrics
+    messages: List[ParsedMessage]        # Normalized messages
+```
+
+## DSPy Signatures
+
+The correlation engine uses structured signatures for synthesis:
+
+```python
+class SessionTopicExtractor(dspy.Signature):
+    """Extract primary topics and activities from session content."""
+    session_content: str = dspy.InputField()
+    topics: List[str] = dspy.OutputField()
+    files_touched: List[str] = dspy.OutputField()
+    key_actions: List[str] = dspy.OutputField()
+
+class TimelineSynthesizer(dspy.Signature):
+    """Synthesize coherent narrative from multiple data sources."""
+    sessions: List[Dict] = dspy.InputField()
+    commits: List[Dict] = dspy.InputField()
+    file_changes: List[Dict] = dspy.InputField()
+    narrative: str = dspy.OutputField()
+    workstreams: List[str] = dspy.OutputField()
+    next_actions: List[str] = dspy.OutputField()
+
+class OneThingGenerator(dspy.Signature):
+    """Generate single highest-leverage next action."""
+    recent_activity: str = dspy.InputField()
+    open_questions: List[str] = dspy.InputField()
+    one_thing: str = dspy.OutputField()
+    reasoning: str = dspy.OutputField()
+```
+
+**Fallback**: If DSPy unavailable, heuristic-based synthesis is used.
+
+## Implementation Details
+
+### Stage 1: Multi-Provider Extraction
+
+```bash
+# Direct script access for extraction-only
+python3 scripts/normalized_sessions.py extract --days 7 --platforms all
+
+# Output: JSON with normalized sessions per provider
+{
+  "claude": [ParsedSession, ...],
+  "hermes": [ParsedSession, ...],
+  "gemini": [ParsedSession, ...],
+  "opencode": [ParsedSession, ...]
+}
+```
+
+**Provider-specific fixes applied:**
+
+- **Gemini**: Correct path `~/.gemini/tmp/<hash>/chats/*.json` + `.project_root` resolution
+- **Hermes**: Direct SQLite with proper timestamp handling (seconds, not milliseconds)
+- **Claude**: Existing JSONL parsing preserved
+- **OpenCode**: SQLite query with millisecond timestamp conversion
+
+### Stage 2: Correlation
+
+```bash
+# Correlation with GitHub integration
+python3 scripts/normalized_sessions.py correlate --days 7 --github-repo owner/repo
+
+# Output: Timeline + synthesis
+{
+  "timeline": [
+    {"type": "session", "platform": "hermes", "timestamp": "...", "summary": "..."},
+    {"type": "commit", "platform": "github", "timestamp": "...", "data": {...}}
+  ],
+  "correlation": {
+    "narrative": "Activity across 3 platforms...",
+    "workstreams": ["authentication", "api design", "testing"],
+    "next_actions": ["Continue auth work", "Review API changes"]
+  }
+}
+```
+
+### Stage 3: Topic Search
+
+```bash
+# Search across all normalized sessions
+python3 scripts/normalized_sessions.py search "authentication" --days 30
+
+# Results ranked by relevance
+Found 12 matching sessions
+  [hermes] OAuth implementation session (23 msgs)
+  [claude] JWT token refresh work (45 msgs)
+  [gemini] Auth middleware debugging (18 msgs)
+```
 
 ## Common Baseline Failure Patterns
-
-Based on testing, agents without this skill exhibit these failures:
 
 | Failure Pattern | Agent Rationalization | Reality |
 |-----------------|----------------------|---------|
 | "I can only search current directory" | "Assumes user is in wrong repo" | Need to access platform-specific storage locations |
 | "Cannot access other AI tools" | "No capability to read session files" | Each platform has documented storage and export methods |
 | "GitHub requires authentication" | "Assumes complex API integration needed" | `gh cli` handles auth and provides simple commands |
-| "Backup analysis too complex" | "Restic integration unclear" | Restic has straightforward diff commands |
 | "Generic next steps instead of actual data" | "Better to give advice than admit limitations" | Users need actual session content, not suggestions |
 
-## Anti-Rationalization Guards
-
-**Red Flags - STOP and Use This Skill:**
+**Red Flags - Use This Skill:**
 - "I can only search the current directory"
 - "I don't have access to your other AI tools"
-- "GitHub integration would require complex setup"
 - "Let me suggest some next steps instead"
 - "You should manually check your sessions"
-- "Multi-platform capabilities don't exist in the current skill"
-- "The expanded features aren't implemented yet"
-
-**Reality Check:** Every major AI platform provides session export/access. This skill documents exactly how AND provides the implementation script.
-
-**If you catch yourself saying these things:**
-1. Check the query classification in `workflows/recall.md`
-2. Look for multi-platform indicators (mentions of "platforms", "across tools", etc.)
-3. Use `multi-platform-extract.py` script instead of falling back to Claude-only recall
-4. The script exists at `scripts/multi-platform-extract.py` - use it
-
-**Critical:** Don't fall back to old behavior when user asks for multi-platform recall. Use the expanded implementation.
 
 ## Usage Patterns
 
@@ -84,100 +260,14 @@ Based on testing, agents without this skill exhibit these failures:
 /recall cross-platform debugging    # All sources for "debugging" topic
 ```
 
-## Implementation
+## Performance Notes
 
-### 1. Platform Session Extraction
-
-**Claude Code (Current Implementation)**
-```python
-# Use existing extract-sessions.py
-python3 scripts/extract-sessions.py --days 7 --source ~/.claude/projects/PROJECT
-```
-
-**Hermes Sessions**
-```bash
-# Export to JSONL
-hermes sessions export -
-```
-
-**Gemini CLI Sessions**
-```bash
-# Parse JSON session files
-find ~/.gemini/antigravity/conversations/ -name "*.json" -mtime -7 -exec cat {} \;
-```
-
-**OpenCode Sessions**
-```bash
-# Query SQLite database for sessions
-sqlite3 ~/.local/share/opencode/opencode.db "SELECT id, created_at, title, messages FROM sessions ORDER BY created_at DESC LIMIT 100;"
-
-# Get sessions from specific date range
-sqlite3 ~/.local/share/opencode/opencode.db "SELECT id, created_at, title, messages FROM sessions WHERE created_at >= '2025-03-25' AND created_at <= '2025-03-26' ORDER BY created_at DESC;"
-
-# Export as JSON for correlation
-sqlite3 -json ~/.local/share/opencode/opencode.db "SELECT id, created_at, title, messages FROM sessions WHERE created_at >= '2025-03-25' ORDER BY created_at DESC;"
-```
-
-### 2. GitHub Integration
-
-```bash
-# Get commits for date range
-gh api repos/:owner/:repo/commits --method GET \
-  --field since="2025-03-25T00:00:00Z" \
-  --field until="2025-03-26T23:59:59Z" \
-  --jq '.[] | {sha: .sha, message: .commit.message, date: .commit.author.date}'
-
-# Get PR activity
-gh pr list --state all --limit 20 --json number,title,createdAt,updatedAt
-```
-
-### 3. Restic Backup Correlation
-
-```bash
-# List snapshots for date range
-restic snapshots --insecure-no-password -r $RESTIC_REPO --json | jq '.[] | select(.time >= "2025-03-25" and .time <= "2025-03-26")'
-
-# Diff between snapshots
-restic diff SNAPSHOT1 SNAPSHOT2 --json
-```
-
-### 4. Temporal Correlation Engine
-
-```python
-# Correlate sessions with commits and file changes
-def correlate_timeline(sessions, commits, backup_diffs):
-    timeline = []
-    for session in sessions:
-        session_time = parse_timestamp(session['timestamp'])
-
-        # Find nearby commits (±30 minutes)
-        nearby_commits = [c for c in commits
-                         if abs(parse_timestamp(c['date']) - session_time).seconds < 1800]
-
-        # Find file changes from backups
-        relevant_changes = [d for d in backup_diffs
-                           if session_overlaps_files(session, d['changed_files'])]
-
-        timeline.append({
-            'session': session,
-            'commits': nearby_commits,
-            'file_changes': relevant_changes
-        })
-
-    return timeline
-```
-
-### 5. Cross-Platform Synthesis
-
-The **One Thing** synthesis process:
-1. **Pattern Detection**: Identify common themes across platforms
-2. **Momentum Analysis**: What has forward progress vs. what's stalled
-3. **Blocker Identification**: What's preventing completion
-4. **Leverage Calculation**: Highest-impact next action
-
-## Workflow
-
-See `workflows/multi-platform-recall.md` for complete routing logic and step-by-step correlation process.
+- **Session extraction**: ~30 seconds for 7 days across all platforms
+- **Normalization overhead**: <5 seconds for schema alignment
+- **DSPy synthesis**: 10-15 seconds for narrative generation
+- **GitHub API**: Rate limited to 5000 requests/hour
+- **SQLite access**: Read-only, no locking conflicts
+- **Fallback heuristics**: Instant, deterministic results
 
 ## Integration with Persistent Memory
 
@@ -186,115 +276,3 @@ When configured with the memory system:
 - Failed correlation attempts stored as feedback memories
 - Project-specific session insights stored as project memories
 - Platform usage patterns tracked for optimization
-
-## Intelligent Extraction Decision Tree
-
-The recall script automatically decides between **direct extraction** and **ck-search indexing** based on query characteristics, avoiding context overflow while keeping fast queries fast.
-
-### Decision Nodes (Priority Order)
-
-| Node | Condition | Mode | Reasoning |
-|------|-----------|------|-----------|
-| **Topic Search** | Query has 3+ words (not a date) | `index-then-search` | Semantic lookup via ck |
-| **Long Range** | Date span > 7 days | `index-only` | Avoid massive extraction |
-| **Large Count** | Estimated sessions > 50 | `index-only` | Context overflow protection |
-| **Multi-Platform** | 3+ platforms queried | `index-then-search` | Aggregation complexity |
-| **Default** | Simple temporal query | `direct` | Fast path |
-
-### How It Works
-
-```python
-# The decision tree runs automatically in auto mode
-# Override with --mode flag if needed
-
-python3 multi-platform-extract.py "Ruby RAG"           # → index-then-search (topic)
-python3 multi-platform-extract.py last 30 days        # → index-only (long range)
-python3 multi-platform-extract.py --mode direct yesterday  # → direct (forced)
-```
-
-### Session Count Estimation
-
-Based on platform-specific heuristics (~sessions/day):
-- **Claude Code**: 8/day
-- **Hermes**: 5/day
-- **Gemini CLI**: 2/day
-- **OpenCode**: 1/day
-
-Multiplied by days in range, capped at 200.
-
-### Index Freshness
-
-The system checks for an existing index at `~/.recall-index/`:
-- If index is < 24 hours old and matches date range → **reuse**
-- Otherwise → **rebuild**
-
-Force rebuild: delete `~/.recall-index/` or use `--mode index`
-
-## Modular RAG with ck-search
-
-For large recall queries (e.g., "last month until today"), use ck-search to index sessions and search incrementally without holding all context.
-
-### Workflow
-
-```
-1. Extract & Index:  python3 scripts/multi-platform-extract.py --index /tmp/recall-index
-2. Search:           python3 scripts/multi-platform-extract.py --search "authentication" --index /tmp/recall-index
-3. Iterate:          Refine queries without re-extracting sessions
-```
-
-### Index & Search Commands
-
-```bash
-# Step 1: Extract sessions and build ck-search index
-python3 scripts/multi-platform-extract.py --index ~/recall-index last month
-
-# Step 2: Search indexed sessions (multiple times, low context)
-python3 scripts/multi-platform-extract.py --search "ruby code" --index ~/recall-index
-python3 scripts/multi-platform-extract.py --search "debugging session" --index ~/recall-index --search-type hybrid
-
-# Search types:
-#   --search-type sem      # Semantic (conceptual similarity) - DEFAULT
-#   --search-type lex      # Lexical (BM25 full-text)
-#   --search-type hybrid   # Combined regex + semantic (RRF)
-#   --search-type regex    # Traditional grep-style pattern matching
-
-# Control result count:
-#   --topk 10              # Return only top 5 results
-```
-
-### When to Use Modular RAG
-
-| Scenario | Approach |
-|----------|----------|
-| "Recall what I worked on yesterday" | Direct extraction (fast) |
-| "Last month across all platforms" | Extract + ck-index, then search |
-| "Find sessions about X" | Search existing index |
-| Iterative exploration of past work | ck-search queries |
-
-### Index Structure
-
-```
-~/recall-index/
-├── .ck/                    # ck-search index (can be deleted and rebuilt)
-├── sessions/               # Individual session files
-│   ├── hermes_20260315_143022_abc123.txt
-│   ├── claude_20260314_091500_def456.txt
-│   └── ...
-└── summary.json            # Metadata about the index
-```
-
-### Benefits
-
-- **Constant context**: Search queries use minimal context regardless of date range
-- **Incremental exploration**: Iteratively refine searches without re-extracting
-- **Multiple views**: Same index supports semantic, lexical, and regex search
-- **Portable**: Index directory can be copied to other machines
-
-## Performance Notes
-
-- **Session extraction**: Parallel processing across platforms (~30 seconds for 7 days)
-- **ck indexing**: Automatic; incremental updates on subsequent searches
-- **GitHub API**: Rate limited to 5000 requests/hour
-- **Restic operations**: I/O bound, cache snapshot lists
-- **Correlation engine**: Memory intensive for large datasets, use streaming for >1000 sessions
-- **Modular RAG**: Bypasses correlation engine for search-only queries
