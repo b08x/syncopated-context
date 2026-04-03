@@ -4,88 +4,194 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Purpose
 
-This is a Claude Code plugin marketplace repository. It packages the **rubysmithing** plugin — a convention-aware Ruby development suite — for distribution via the Claude Code plugin system.
+This is a multi-plugin Claude Code marketplace repository called **syncopated-context**. It distributes multiple specialized development plugins:
 
-The marketplace manifest is at `.claude-plugin/marketplace.json`. The plugin itself lives under `plugins/rubysmithing/`.
+- **rubysmithing** — Convention-aware Ruby development suite with 13 specialized agents
+- **bashsmithing** — Bash development suite with shellcheck, BATS testing, and TUI scaffolding  
+- **notebook** — Multi-platform AI session recall and analysis tools
 
-## Plugin Structure
+The marketplace manifest is at `.claude-plugin/marketplace.json`. Individual plugins live under `plugins/*/`. The repository also contains many repository-level skills and commands that support broader development workflows.
 
-The plugin uses a **shared-root architecture** modeled after the sdd plugin pattern. Agents, references, and scripts used by multiple skills live at the plugin root rather than inside individual skill directories.
+## Repository Structure
 
 ```
-plugins/rubysmithing/
-├── .claude-plugin/plugin.json   # Plugin metadata and version (v2.0.0)
-├── agents/                      # All 13 agents (agentic-operations-lead, agentic-software-engineer, context-engineer, cognitive-architect, ux-engineer, platform-engineer, maintenance-architect, ruby-diagnostics-engineer, developer-experience-engineer, senior-qa-engineer, director-of-ai-risk, compliance-guardrail-agent, senior-backend-architect)
-├── commands/                    # Shared commands (context)
-├── references/                  # Shared references (gem-registry, cache-cli, genai-patterns, design-patterns, tui-patterns)
-├── scripts/                     # Shared scripts (context_cache.rb — SQLite gem cache)
-├── assets/skeleton/             # TUI project skeleton (copied and renamed per scaffold)
-├── skills/
-│   ├── plan/        # Hub/orchestrator — routes to spokes; holds error-contract.md, conventions.md
-│   ├── analyse/     # Gemba Walk, Muda, Root-Cause Tracing, Five Whys
-│   ├── context/     # SKILL.md only — agent/commands/refs/scripts live at plugin root
-│   ├── genai/       # SKILL.md only — agent/refs at plugin root
-│   ├── refactor/    # Convention-targeted rewriting
-│   ├── scaffold/    # rubysmith/gemsmith project initialization
-│   ├── sift/        # SIFT Protocol V1.0 QA audits
-│   ├── tui/         # SKILL.md only — agent/refs/assets at plugin root
-│   └── yardoc/      # YARD documentation generation
-├── Gemfile                      # Ruby dependencies for plugin toolchain
-└── .rubocop.yml                 # RuboCop config (Ruby 3.4, extensive rule set)
+syncopated-context/
+├── .claude-plugin/marketplace.json     # Marketplace distribution manifest
+├── commands/                           # Repository-level workflow commands
+│   ├── implement.md, refactor.md       # Development workflow commands
+│   ├── session-start.md, session-end.md # Session management
+│   ├── containerize.md                 # Container deployment workflows
+│   └── gemini/                         # Gemini CLI configurations
+├── skills/                             # Repository-level skills
+│   ├── containerization/               # Docker/container deployment
+│   ├── ansible-collection-manager/     # Ansible automation
+│   ├── resume-generator/               # Professional document generation
+│   ├── recall/                         # AI session analysis and recall
+│   └── [9 other specialized skills]    # Various development domains
+├── plugins/
+│   ├── rubysmithing/                   # Ruby development suite
+│   ├── bashsmithing/                   # Bash development suite  
+│   └── [future plugins]
+└── tasks/                              # Task definitions and pre-flight reviews
 ```
 
-Skills that are purely SKILL.md (context, genai, tui) have had their agents/references/assets elevated to plugin root so all skills can reference them via `$CLAUDE_PLUGIN_ROOT/agents/`, `$CLAUDE_PLUGIN_ROOT/references/`, etc.
+## Common Development Commands
 
-## Ruby Toolchain
+### Repository-Level Commands
+```bash
+# Plugin installation and management
+claude plugin add syncopated-context                    # Install all plugins
+claude plugin add syncopated-context/rubysmithing      # Install specific plugin  
 
-Ruby version: **3.4.4** (`.tool-versions` / `.ruby-version`)
+# Repository-level workflow commands (from commands/)
+/implement     # Implementation planning and execution
+/refactor      # Code refactoring workflows
+/containerize  # Docker containerization workflows
+/session-start # Start development session with context setup
+/session-end   # End session with cleanup and documentation
 
+# Memory and recall management
+/setup-memory  # Initialize persistent memory system
+/recall        # Multi-platform AI session analysis
+```
+
+### Plugin-Specific Development
+
+#### rubysmithing (Ruby Development)
 All commands run from `plugins/rubysmithing/`:
 
 ```bash
-# Install dependencies
-bundle install
+# Ruby environment setup
+ruby --version  # Should be 3.4.4+ (see .tool-versions)
+bundle install  # Install Ruby dependencies
 
-# Lint
-bundle exec rubocop
+# Development workflow
+bundle exec rubocop              # Lint all Ruby code
+bundle exec rubocop -a           # Lint with autocorrect
+bundle exec rspec                # Run all tests  
+bundle exec rspec spec/path/to/file_spec.rb  # Single test file
+bundle exec git-lint             # Validate commit messages
 
-# Lint with autocorrect
-bundle exec rubocop -a
-
-# Tests
-bundle exec rspec
-
-# Single spec file
-bundle exec rspec spec/path/to/file_spec.rb
-
-# Git commit quality
-bundle exec git-lint
+# Skills available
+rubysmithing:plan       # Hub/orchestrator for all Ruby tasks
+rubysmithing:analyse    # Code analysis (Gemba Walk, Five Whys)
+rubysmithing:scaffold   # Project initialization via rubysmith
+rubysmithing:refactor   # Convention fixes, Zeitwerk compliance
+rubysmithing:genai      # LLM, RAG, embeddings integration
+rubysmithing:tui        # Terminal UI development
+rubysmithing:sift       # QA audits with weighted rubrics
+rubysmithing:yardoc     # Documentation generation
 ```
 
-## Skill Authoring Conventions
+#### bashsmithing (Bash Development)
+```bash
+# Development workflow
+shellcheck scripts/**/*.sh       # Bash linting
+bats test/**/*.bats              # BATS testing framework
 
-Skill frontmatter supports only `name` (≤64 chars) and `description` (≤1024 chars, third person). Do not add other frontmatter fields.
+# Skills available  
+bashsmithing:scaffold   # Bash project initialization with Gum/Charm
+bashsmithing:tui        # Terminal UI scaffolding
+bashsmithing:context    # Context caching and management
+```
 
-### Shared vs Skill-Local Resources
+## Plugin Architecture
 
-- **Shared** (at plugin root): resources used by multiple skills — the context agent, gem-registry, cache-cli, genai-patterns, design-patterns, tui-patterns, context_cache.rb, assets/skeleton/
-- **Skill-local**: resources used only within a single skill — keep them in `skills/<name>/references/`, `skills/<name>/agents/`, etc.
+### rubysmithing (Ruby Development Suite)
 
-When a skill references a shared resource, use the full path: `$CLAUDE_PLUGIN_ROOT/references/gem-registry.md` (not a relative path). When referencing a skill-local resource from within that skill's SKILL.md, relative paths (`references/foo.md`) work.
+Uses **shared-root architecture** — agents, references, and scripts used by multiple skills live at the plugin root:
 
-### Delegation from plan
+```
+plugins/rubysmithing/
+├── .claude-plugin/plugin.json   # Plugin metadata (v2.2.0)
+├── agents/                      # 15 specialized agents including systems-observer, agentic-data-engineer
+├── commands/                    # Shared commands (context, audit, flow, diagnose)  
+├── references/                  # Shared references (gem-registry, design-patterns)
+├── scripts/                     # Shared scripts (context_cache.rb — SQLite gem cache)
+├── assets/skeleton/             # TUI project skeleton templates
+├── skills/                      # 9 specialized skills (plan, analyse, scaffold, etc.)
+├── Gemfile                      # Ruby dependencies
+└── .rubocop.yml                 # RuboCop config (Ruby 3.4+)
+```
 
-The `plan` skill (hub) delegates to spokes via the Agent tool. Spoke agents are discovered at `$CLAUDE_PLUGIN_ROOT/agents/` (for shared agents) or `$CLAUDE_PLUGIN_ROOT/skills/<name>/agents/` (for skill-local agents). The orchestrator in `skills/plan/agents/` detects mode (Lite vs Standard) and convention target before delegating.
+Skills reference shared resources via `$CLAUDE_PLUGIN_ROOT/agents/`, `$CLAUDE_PLUGIN_ROOT/references/`, etc.
 
-### Lite Mode vs Standard Mode
+### bashsmithing (Bash Development Suite)
 
-- **Lite Mode**: single-file ≤~50 lines, stdlib only — no `dry-schema`, `async`, `circuit_breaker`, no `frozen_string_literal` mandate
-- **Standard Mode**: all other tasks — full conventions, `frozen_string_literal: true` on every file, Zeitwerk-compliant paths, `journald-logger` not `puts`, `Async {}` not `Thread.new`, `circuit_breaker` on external calls
+Convention-aware Bash development with shellcheck integration and Gum/Charm TUI scaffolding.
 
-### SKILL.md Size
+## Repository-Level Skills Architecture
 
-Keep each SKILL.md under 500 lines. Move detailed reference material to `references/*.md` and link from SKILL.md. All reference links must be one level deep — no `references/sub/file.md`.
+Beyond plugin-specific skills, the repository provides many standalone skills for broader development workflows:
 
-### Marketplace Manifest
+### Core Development Skills
+- **containerization/** — Docker deployment and container orchestration
+- **ansible-collection-manager/** — Ansible automation and infrastructure as code  
+- **recall/** — Multi-platform AI session analysis and extraction (14 files, 256KB)
+- **readme-generator/** — Automated documentation generation
+- **tech-interview-prep/** — Technical interview preparation and coding challenges
 
-When bumping the plugin version in `plugins/rubysmithing/.claude-plugin/plugin.json`, also update the `version` field in `.claude-plugin/marketplace.json` to keep them in sync.
+### Specialized Domain Skills  
+- **resume-generator/** — Professional document generation (15 files, 140KB)
+- **servicenow-kb-generator/** — ServiceNow knowledge base automation
+- **ruby-design-patterns/** — Advanced Ruby architecture patterns
+- **jekyll-react-islands/** — Static site generation with React components
+- **notebooklm/** — NotebookLM integration for research and analysis
+
+### Development Toolchain
+
+#### Ruby Environment (for rubysmithing plugin)
+Ruby version: **3.4.4** (`.tool-versions` / `.ruby-version`)  
+See Plugin-Specific Development commands above for Ruby workflow.
+
+#### Bash Environment (for bashsmithing plugin) 
+Requires: `shellcheck`, `bats-core`, `gum` (Charm CLI tools)
+
+#### General Dependencies
+- Claude Code CLI for plugin management
+- Git for version control  
+- Docker for containerization workflows
+
+## Plugin and Skill Development
+
+### Skill Authoring Standards
+
+All skills (repository-level and plugin-specific) follow these conventions:
+
+- **Frontmatter**: Only `name` (≤64 chars) and `description` (≤1024 chars, third person)  
+- **Size limit**: Keep SKILL.md under 500 lines
+- **References**: Move detailed reference material to `references/*.md`, one level deep only
+- **Agent integration**: Use Agent tool for complex multi-step workflows
+
+### Resource Organization
+
+#### Repository-Level Skills (`skills/*/`)
+- Self-contained with their own `references/`, `scripts/`, `templates/` subdirectories
+- No shared dependencies — each skill manages its own resources
+
+#### Plugin Skills (`plugins/*/skills/*/`)  
+- **Shared resources** (at plugin root): agents, references, scripts used by multiple skills
+- **Skill-local resources**: used only within one skill, kept in skill subdirectories
+- Reference shared resources via `$CLAUDE_PLUGIN_ROOT/path/to/resource.md`
+
+### Convention Modes (rubysmithing plugin)
+
+- **Lite Mode**: Single-file ≤~50 lines, stdlib only, minimal dependencies
+- **Standard Mode**: Full conventions, `frozen_string_literal: true`, Zeitwerk compliance, structured logging
+
+### Hub-and-Spoke Pattern (rubysmithing plugin)
+
+The `rubysmithing:plan` skill acts as an orchestrator that detects task types and delegates to specialized agents. Agents are discovered at `$CLAUDE_PLUGIN_ROOT/agents/` (shared) or skill-local agent directories.
+
+### Marketplace Management
+
+#### Version Synchronization
+When updating plugin versions:
+1. Update individual plugin version in `plugins/<name>/.claude-plugin/plugin.json`  
+2. Update marketplace version in `.claude-plugin/marketplace.json`
+3. Ensure version compatibility across all distributed plugins
+
+#### Distribution Structure
+- **Marketplace manifest**: `.claude-plugin/marketplace.json` — distributes all plugins as a bundle
+- **Individual plugins**: Each has its own `plugin.json` for standalone installation
+- **Repository-level skills**: Automatically available after any plugin installation from this marketplace
