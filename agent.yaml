@@ -1,0 +1,36 @@
+spec_version: 0.1.0
+name: context
+version: 1.0.0
+description: 'Syncopated Context - A comprehensive development agent with 25 skills for automation, analysis, and development workflows. Includes Claude Code marketplace capabilities with GitAgent compatibility.'
+model:
+  preferred: claude-sonnet-4-5-20250929
+skills:
+  - ansible-collection-manager
+  - containerization
+  - create-todos
+  - git-commit
+  - implement
+  - jekyll-react-islands
+  - notebooklm
+  - other-steve
+  - other-steve-arch
+  - predict-issues
+  - query-notebook
+  - readme-generator
+  - recall
+  - refactor
+  - resume-generator
+  - ruby-design-patterns
+  - servicenow-kb-generator
+  - session-end
+  - session-start
+  - setup-memory
+  - smart-debug
+  - tech-interview-prep
+  - understand
+  - undo
+  - yadm-commit
+tools:
+  - backup-analysis
+  - github-activity
+  - multi-platform-recall
