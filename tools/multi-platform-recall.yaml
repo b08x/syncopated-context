@@ -1,0 +1,40 @@
+name: multi-platform-recall
+description: Extract and analyze AI session data from multiple platforms (Claude Code, Gemini CLI, OpenCode, Hermes)
+version: 1.0.0
+input_schema:
+  type: object
+  properties:
+    platform:
+      type: string
+      enum: [claude-code, gemini-cli, opencode, hermes, all]
+      description: Target AI platform or 'all' for cross-platform search
+    timeframe:
+      type: string
+      enum: [today, yesterday, last-week, last-month]
+      description: Time window for session extraction
+    topic:
+      type: string
+      description: Optional topic or keyword filter
+  required: [platform, timeframe]
+output_schema:
+  type: object
+  properties:
+    sessions:
+      type: array
+      items:
+        type: object
+        properties:
+          platform: { type: string }
+          timestamp: { type: string, format: date-time }
+          summary: { type: string }
+          files_modified: { type: array, items: { type: string } }
+          key_decisions: { type: array, items: { type: string } }
+implementation:
+  type: script
+  path: ../skills/recall/scripts/multi-platform-extract.py
+  runtime: python3
+  timeout: 60
+annotations:
+  requires_confirmation: false
+  read_only: true
+  cost: low

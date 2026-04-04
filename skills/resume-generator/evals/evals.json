@@ -1,0 +1,80 @@
+{
+  "skill_name": "resume-generator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a professional resume from this markdown file and generate both HTML and PDF versions. Make sure the PDF has proper page breaks that don't split job entries or sections awkwardly. The resume data is in /home/b08x/Notebook/Resume/Columbus OH Tech Systems Professional.md",
+      "expected_output": "HTML and PDF resume files with intelligent page breaks",
+      "files": [],
+      "assertions": [
+        {
+          "text": "HTML file is generated successfully",
+          "type": "file_exists",
+          "target": "*.html"
+        },
+        {
+          "text": "PDF file is generated using enhanced script",
+          "type": "file_exists",
+          "target": "*.pdf"
+        },
+        {
+          "text": "PDF has proper page breaks (no sections split mid-content)",
+          "type": "manual_review",
+          "description": "Check that job entries, sections, and logical content units are not broken across pages inappropriately"
+        },
+        {
+          "text": "Content structure is preserved in PDF",
+          "type": "manual_review",
+          "description": "Verify that all resume sections, formatting, and hierarchy are maintained"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need to create a resume for a technical position. Take my experience and generate a clean, professional PDF that's ready for job applications. The data is at /home/b08x/Notebook/Resume/Columbus OH Tech Systems Professional.md. Use the 'professional' template and ensure the page breaks look clean.",
+      "expected_output": "Professional template PDF with optimized page breaks",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Professional template is used",
+          "type": "content_check",
+          "description": "HTML should include professional template styling (borders, navy accents)"
+        },
+        {
+          "text": "Dynamic page break analysis is performed",
+          "type": "log_check",
+          "description": "Console output should show 'Analyzing content structure for optimal page breaks...'"
+        },
+        {
+          "text": "PDF renders without awkward page breaks",
+          "type": "manual_review",
+          "description": "Professional experience entries should not be split across pages"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Compare the old and new page break methods by generating the same resume with both scripts. Show me the difference in quality.",
+      "expected_output": "Two PDF files demonstrating improved page break handling",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Both legacy and enhanced PDFs are generated",
+          "type": "file_count",
+          "target": "*.pdf",
+          "count": ">=2"
+        },
+        {
+          "text": "Enhanced version shows improved page breaks",
+          "type": "manual_review",
+          "description": "Compare PDFs side-by-side to verify enhanced version has better content flow"
+        },
+        {
+          "text": "Requirements file exists and is complete",
+          "type": "file_exists",
+          "target": "requirements.txt"
+        }
+      ]
+    }
+  ]
+}

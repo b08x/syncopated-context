@@ -1,8 +1,12 @@
 ---
 name: recall
-description: Use when user asks to recall work across multiple AI platforms (Claude Code, Gemini CLI, OpenCode, Hermes), correlate with GitHub activity, or analyze file changes from backups. Handles temporal queries, topic searches, and cross-platform session aggregation. Triggers on "recall", "what did we work on", "session history across platforms", "multi-platform recall", "GitHub commits", "backup diffs", "restic changes".
-argument-hint: [yesterday|today|last week|TOPIC|platform:PLATFORM_NAME|github:REPO|backup:PATH]
-allowed-tools: Bash(python3:*), Bash(hermes:*), Bash(gemini:*), Bash(opencode:*), Bash(gh:*), Bash(restic:*), Bash(sqlite3:*)
+description: Multi-platform AI session recall across Claude Code, Gemini CLI, OpenCode, and Hermes. Correlates GitHub activity and backup changes. Handles temporal queries and cross-platform session aggregation.
+license: MIT
+allowed-tools: Read Edit Grep Glob Bash multi-platform-recall github-activity backup-analysis
+metadata:
+  author: b08x
+  version: "1.0.0"
+  category: automation
 ---
 
 # Multi-Platform Recall Skill

@@ -1,6 +1,12 @@
 ---
 name: notebooklm
-description: Import NotebookLM notebooks into your Obsidian vault as linked knowledge graphs. Sources become wikilink-able files, Q&A answers get citations resolved to [[wikilinks]] with passage-level deep links. Use when user says "notebooklm import", "import notebook", "notebooklm ask", "notebooklm sources", or wants to turn NotebookLM research into vault knowledge.
+description: Import NotebookLM notebooks into Obsidian vault as linked knowledge graphs. Sources become wikilink-able files with citation resolution.
+license: MIT
+allowed-tools: Read Edit Grep Glob Bash Write
+metadata:
+  author: b08x
+  version: "1.0.0"
+  category: automation
 ---
 
 # NotebookLM - Vault Knowledge Graph

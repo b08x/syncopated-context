@@ -1,6 +1,12 @@
 ---
 name: readme-generator
-description: This skill should be used whenever a user wants to generate, rewrite, or significantly improve a README.md for a software project. Triggers include requests like "write a README for my project," "generate documentation for this tool," "make a README from this codebase," or providing a project description/codebase and asking for documentation. The output follows a specific structural exemplar (CLI/OSS style) and an opinionated Technical Research Style Guide governing tone, prose rhythm, and formatting discipline. This skill should NOT be used for generating inline API docs, docstrings, changelogs, or contributing guides as standalone deliverables.
+description: Generate, rewrite, or improve README.md files for software projects. Follows CLI/OSS style with opinionated Technical Research Style Guide.
+license: MIT
+allowed-tools: Read Edit Grep Glob Bash Write
+metadata:
+  author: b08x
+  version: "1.0.0"
+  category: automation
 ---
 
 # README Generator Skill

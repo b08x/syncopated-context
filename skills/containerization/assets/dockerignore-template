@@ -1,0 +1,43 @@
+# Version control
+.git
+.gitignore
+
+# Docker
+**/Dockerfile
+docker-compose*.yml
+compose*.yaml
+
+# Dependencies (rebuilt in container)
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/vendor/bundle
+**/.bundle
+
+# IDE & OS
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment (secrets)
+.env
+.env.*
+!.env.example
+
+# Build outputs (rebuilt in container)
+**/dist
+**/build
+**/.next
+
+# Test & docs
+**/test
+**/tests
+**/*.test.*
+**/*.spec.*
+**/coverage
+**/docs
+*.md
+LICENSE

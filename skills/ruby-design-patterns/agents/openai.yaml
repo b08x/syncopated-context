@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ruby Design Patterns"
+  short_description: "Ruby design pattern guidance and refactors"
+  default_prompt: "Use $ruby-design-patterns to explain and apply Ruby design patterns."

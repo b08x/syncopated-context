@@ -1,0 +1,99 @@
+{
+  "name": "Jane Smith",
+  "email": "jane.smith@example.com",
+  "phone": "555-0123",
+  "location": "San Francisco, CA",
+  "linkedin": "linkedin.com/in/janesmith",
+  "portfolio": "janesmith.dev",
+  
+  "summary": "Senior Software Engineer with 8+ years of experience building scalable distributed systems and leading cross-functional teams. Specialized in cloud infrastructure, microservices architecture, and DevOps practices.",
+  
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "TechCorp Inc.",
+      "date_range": "Jan 2020 – Present",
+      "bullets": [
+        "Led migration of monolithic application to microservices architecture, reducing deployment time by 75% and improving system reliability to 99.99% uptime",
+        "Architected and implemented real-time data pipeline processing 10M+ events daily using Apache Kafka and Kubernetes",
+        "Mentored team of 5 junior engineers, establishing code review practices and technical design review process",
+        "Reduced cloud infrastructure costs by 40% through optimization of resource allocation and implementation of auto-scaling policies"
+      ]
+    },
+    {
+      "title": "Software Engineer",
+      "company": "StartupXYZ",
+      "date_range": "Jun 2017 – Dec 2019",
+      "bullets": [
+        "Built RESTful APIs serving 500K+ daily active users with sub-100ms response times",
+        "Implemented comprehensive CI/CD pipeline using Jenkins and Docker, reducing deployment failures by 60%",
+        "Designed and deployed monitoring infrastructure with Prometheus and Grafana, improving incident response time by 3x",
+        "Collaborated with product team to deliver 15+ major features ahead of schedule"
+      ]
+    },
+    {
+      "title": "Junior Software Developer",
+      "company": "WebDev Solutions",
+      "date_range": "Aug 2015 – May 2017",
+      "bullets": [
+        "Developed full-stack web applications using React, Node.js, and PostgreSQL",
+        "Participated in agile development process with 2-week sprint cycles",
+        "Wrote comprehensive unit and integration tests achieving 85%+ code coverage",
+        "Maintained legacy PHP applications while gradually modernizing codebase"
+      ]
+    }
+  ],
+  
+  "education": [
+    {
+      "degree": "Bachelor of Science in Computer Science",
+      "institution": "University of California, Berkeley",
+      "year": 2015,
+      "details": "Magna Cum Laude, GPA: 3.8/4.0. Dean's List all semesters."
+    }
+  ],
+  
+  "skills": {
+    "Languages": ["Python", "JavaScript", "TypeScript", "Go", "Java", "SQL"],
+    "Frameworks": ["React", "Node.js", "Django", "Flask", "Spring Boot"],
+    "Infrastructure": ["AWS", "Docker", "Kubernetes", "Terraform", "Jenkins"],
+    "Databases": ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch"],
+    "Tools": ["Git", "JIRA", "Prometheus", "Grafana", "Kafka"]
+  },
+  
+  "projects": [
+    {
+      "title": "Open Source Monitoring Dashboard",
+      "company": "Personal Project",
+      "date_range": "2023 – Present",
+      "bullets": [
+        "Built customizable monitoring dashboard with real-time metrics visualization using React and D3.js",
+        "Implemented plugin system allowing community contributions for new data sources",
+        "Gained 2,500+ GitHub stars and active community of 50+ contributors"
+      ]
+    },
+    {
+      "title": "Distributed Task Queue",
+      "company": "Hackathon Winner",
+      "date_range": "2022",
+      "bullets": [
+        "Developed high-performance task queue system in Go with Redis backend",
+        "Supported 10,000+ tasks per second with guaranteed delivery and retry mechanisms",
+        "Won 1st place at TechConf 2022 Hackathon among 150+ participants"
+      ]
+    }
+  ],
+  
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect - Professional",
+      "issuer": "Amazon Web Services",
+      "date": "2023"
+    },
+    {
+      "name": "Certified Kubernetes Administrator (CKA)",
+      "issuer": "Cloud Native Computing Foundation",
+      "date": "2022"
+    }
+  ]
+}

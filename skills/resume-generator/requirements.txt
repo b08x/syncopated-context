@@ -1,0 +1,13 @@
+# Resume Generator Dependencies
+# Core PDF generation
+weasyprint>=60.0
+beautifulsoup4>=4.12.0
+
+# HTML parsing and manipulation
+lxml>=4.9.0
+
+# Optional: Enhanced font support
+fonttools>=4.33.0
+
+# Development/testing
+pathlib2>=2.3.0  # For older Python compatibility (if needed)

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert Pannick — Resume</title>
+<style>
+  :root {
+    --accent: #2563eb;
+    --font-family: system-ui, -apple-system, sans-serif;
+    --font-size: 10pt;
+    --section-gap: 1.2rem;
+    --item-gap: 0.6rem;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @page {
+    size: letter portrait;
+    margin: 0.6in 0.7in;
+  }
+  body {
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    line-height: 1.45;
+    color: #1a1a1a;
+    max-width: 8.5in;
+    margin: 0 auto;
+    padding: 0.5in;
+  }
+  @media print {
+    body { padding: 0; }
+  }
+  header { text-align: center; margin-bottom: var(--section-gap); }
+  header h1 {
+    font-size: 1.8em;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #111;
+    margin-bottom: 0.3rem;
+  }
+  header .contact {
+    font-size: 0.9em;
+    color: #555;
+  }
+  header .contact a { color: var(--accent); text-decoration: none; }
+  header .contact span + span::before { content: " · "; color: #aaa; }
+  .summary {
+    font-style: italic;
+    color: #444;
+    text-align: center;
+    margin-bottom: var(--section-gap);
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  section { margin-bottom: var(--section-gap); }
+  section h2 {
+    font-size: 1.1em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .entry { margin-bottom: var(--item-gap); }
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .entry-header h3 { font-size: 1em; font-weight: 600; color: #222; }
+  .entry-header .meta { font-size: 0.9em; color: #666; }
+  .entry-header .org { color: #444; font-weight: 400; }
+  .entry ul {
+    list-style: disc;
+    padding-left: 1.4em;
+    margin-top: 0.25rem;
+  }
+  .entry li { margin-bottom: 0.15rem; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Robert Pannick</h1>
+    <div class="contact">
+      <span>rwpannick@gmail.com</span><span>+1 614 653 8241</span><span>Columbus, OH 43232</span>
+    </div>
+  </header>
+
+
+  <div class="summary">Technical systems expert with 23+ years of multi-platform OS experience (Linux, macOS, Windows). RHCSA/RHCE certified with extensive background in system administration, technical support, and workflow documentation. Proven ability to train staff on technical systems and create support documentation. Strong attention to detail developed through years of troubleshooting enterprise systems across Windows, Mac, and Linux environments.</div>
+  <section>
+    <h2>Professional Experience</h2>
+    <div class="entry">
+      <div class="entry-header">
+        <h3>Independent Technical Researcher <span class="org">— </span></h3>
+        <span class="meta">**Self-Directed Projects** | Columbus, OH</span>
+      </div>
+      <ul>
+        <li>Developing backend applications for AI-augmented technical support workflows</li>
+        <li>Researching healthcare IT support tools and system integration approaches</li>
+        <li>Building prototype systems using systemic functional linguistics for consistent technical instruction</li>
+        <li>Creating open-source development tools with comprehensive documentation and setup guides</li>
+        <li>Exploring automated workflow documentation approaches using Ansible and containerization</li>
+      </ul>
+    </div>
+    <div class="entry">
+      <div class="entry-header">
+        <h3>DevOps Engineer <span class="org">— </span></h3>
+        <span class="meta">**FortyAU** | Nashville, TN</span>
+      </div>
+      <ul>
+        <li>Documented infrastructure deployment procedures and troubleshooting workflows</li>
+        <li>Created step-by-step guides for CI/CD pipeline configuration and deployment</li>
+        <li>Developed automated provisioning workflows with detailed process documentation</li>
+        <li>Established monitoring procedures with clear incident response documentation</li>
+        <li>Trained team members on infrastructure tools and deployment processes</li>
+      </ul>
+    </div>
+    <div class="entry">
+      <div class="entry-header">
+        <h3>Telecommunications Administrator <span class="org">— </span></h3>
+        <span class="meta">**Indium Corporation** | Remote</span>
+      </div>
+      <ul>
+        <li>Trained global staff on technical tools and system integrations through verbal and written instruction</li>
+        <li>Created user guides and documentation for voice network systems and mobile device setup</li>
+        <li>Developed troubleshooting procedures for telecommunications systems across multiple platforms</li>
+      </ul>
+    </div>
+    <div class="entry">
+      <div class="entry-header">
+        <h3>Helpdesk Support <span class="org">— </span></h3>
+        <span class="meta">**University of Chicago Medical Center** | Chicago, IL</span>
+      </div>
+      <ul>
+        <li>Supported EPIC EMR system users with workflow assistance and technical guidance</li>
+        <li>Provided cross-platform support for Windows XP and Mac OS X systems</li>
+        <li>Created technical support documentation and troubleshooting guides for common issues</li>
+      </ul>
+    </div>
+    <div class="entry">
+      <div class="entry-header">
+        <h3>Linux Systems Administrator <span class="org">— </span></h3>
+        <span class="meta">**OnShored Development** | Chicago, IL</span>
+      </div>
+      <ul>
+        <li>Documented database migration procedures across multiple Linux distributions</li>
+        <li>Created deployment guides for legacy application environments</li>
+        <li>Established automated testing procedures with clear documentation</li>
+      </ul>
+    </div>
+    <div class="entry">
+      <div class="entry-header">
+        <h3>Linux System Engineer <span class="org">— </span></h3>
+        <span class="meta">**Orbitz Worldwide** | Chicago, IL</span>
+      </div>
+      <ul>
+        <li>Documented bare-metal server provisioning workflows using PXE, Kickstart, and Cobbler</li>
+        <li>Created configuration guides for high-availability load balancing solutions</li>
+        <li>Developed automation documentation for DNS and DHCP service management</li>
+      </ul>
+    </div>
+  </section>
+</body>
+</html>

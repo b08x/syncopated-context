@@ -1,0 +1,39 @@
+name: backup-analysis
+description: Analyze file changes and diffs from backup systems (restic, git) to correlate with development sessions
+version: 1.0.0
+input_schema:
+  type: object
+  properties:
+    backup_path:
+      type: string
+      description: Path to backup repository or 'auto' for discovery
+    timeframe:
+      type: string
+      enum: [today, yesterday, last-week, last-month]
+      description: Time window for change analysis
+    file_pattern:
+      type: string
+      description: Optional file pattern filter (e.g., "*.py", "*.md")
+  required: [timeframe]
+output_schema:
+  type: object
+  properties:
+    changes:
+      type: array
+      items:
+        type: object
+        properties:
+          timestamp: { type: string, format: date-time }
+          file_path: { type: string }
+          change_type: { type: string, enum: [added, modified, deleted] }
+          size_change: { type: integer }
+          backup_id: { type: string }
+implementation:
+  type: script
+  path: ../skills/recall/scripts/backup-diff-analysis.py
+  runtime: python3
+  timeout: 120
+annotations:
+  requires_confirmation: false
+  read_only: true
+  cost: medium
