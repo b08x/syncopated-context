@@ -195,3 +195,13 @@ When updating plugin versions:
 - **Marketplace manifest**: `.claude-plugin/marketplace.json` — distributes all plugins as a bundle
 - **Individual plugins**: Each has its own `plugin.json` for standalone installation
 - **Repository-level skills**: Automatically available after any plugin installation from this marketplace
+
+## Context7 MCP Documentation Access
+
+### Use Context7 MCP for Loading Documentation
+
+Context7 MCP is available to fetch up-to-date documentation with code examples.
+
+**Recommended library IDs**:
+
+- `/open-gitagent/gitagent` - Framework-agnostic, git-native standard for defining AI agents with version control, compliance management, and portable deployment across multiple LLM frameworks (669 code snippets, High reputation, Score: 76.5)

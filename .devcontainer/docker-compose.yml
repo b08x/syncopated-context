@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  development:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../:/workspace:cached
+    command: sleep infinity
+    environment:
+      - PYTHONPATH=/workspace
+      - NODE_ENV=development
+      - RUBY_ENV=development
+    networks:
+      - gitagent-dev
+
+  # Optional: Redis for testing tools that need caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - gitagent-dev
+
+  # Optional: PostgreSQL for testing database-dependent tools
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: gitagent_test
+      POSTGRES_USER: gitagent
+      POSTGRES_PASSWORD: gitagent_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gitagent-dev
+
+networks:
+  gitagent-dev:
+    driver: bridge
+
+volumes:
+  postgres_data:

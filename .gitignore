@@ -2,3 +2,6 @@
 .worktrees/
 docs/superpowers/
 **__pycache__**
+
+node-compile-cache/
+
