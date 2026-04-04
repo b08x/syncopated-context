@@ -2,7 +2,7 @@
 
 # rubysmithing
 
-Convention-aware Ruby development suite for Claude Code — fourteen specialized agents covering code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, foreign codebase translation, and architectural oversight.
+Convention-aware Ruby development suite for AI harnesses — fourteen specialized agents covering code generation, TUI scaffolding, AI/NLP integration, refactoring, QA auditing, foreign codebase translation, and architectural oversight.
 
 ![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Ruby](https://img.shields.io/badge/ruby-3.4.4-red)
@@ -92,7 +92,7 @@ The orchestrator never implements code directly. The meta-judge never evaluates 
 ## Installation
 
 <details>
-<summary>Claude Code — Marketplace Install (Recommended)</summary>
+<summary>Marketplace Install (Recommended)</summary>
 
 ```bash
 claude plugin install rubysmithing

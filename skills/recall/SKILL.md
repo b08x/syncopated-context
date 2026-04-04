@@ -1,17 +1,17 @@
 ---
 name: recall
-description: Multi-platform AI session recall across Claude Code, Gemini CLI, OpenCode, and Hermes. Correlates GitHub activity and backup changes. Handles temporal queries and cross-platform session aggregation.
+description: Multi-platform AI harness session recall across Claude Code, Gemini CLI, OpenCode, and Hermes. Correlates GitHub activity and backup changes. Handles temporal queries and cross-platform session aggregation.
 license: MIT
-allowed-tools: Read Edit Grep Glob Bash multi-platform-recall github-activity backup-analysis
+allowed-tools: Read Edit Grep Glob Bash Write
 metadata:
   author: b08x
   version: "1.0.0"
-  category: automation
+  category: productivity
 ---
 
-# Multi-Platform Recall Skill
+# Multi-Platform Recall
 
-Comprehensive session recall across Claude Code, Gemini CLI, OpenCode, and Hermes with GitHub activity correlation and backup diff analysis. Every recall ends with the **One Thing** - a concrete, highest-leverage next action synthesized from cross-platform results.
+Comprehensive AI harness session recall across Claude Code, Gemini CLI, OpenCode, and Hermes with GitHub activity correlation and backup diff analysis. Every recall ends with the **One Thing** - a concrete, highest-leverage next action synthesized from cross-platform results.
 
 ## Architecture Overview
 
@@ -60,10 +60,10 @@ This skill uses a **normalized extraction layer** that unifies session data from
 
 | Platform | Session Storage | Access Method | Format |
 |----------|----------------|---------------|--------|
-| Claude Code | `~/.claude/projects/<encoded_path>/*.jsonl` | Direct file read | JSONL |
-| Hermes | `~/.hermes/state.db` | SQLite read-only | SQLite |
-| Gemini CLI | `~/.gemini/tmp/<hash>/chats/*.json` | Direct file read | JSON |
-| OpenCode | `~/.local/share/opencode/opencode.db` | SQLite read-only | SQLite |
+| AI Harness (Claude Code) | `~/.claude/projects/<encoded_path>/*.jsonl` | Direct file read | JSONL |
+| AI Harness (Hermes) | `~/.hermes/state.db` | SQLite read-only | SQLite |
+| AI Harness (Gemini CLI) | `~/.gemini/tmp/<hash>/chats/*.json` | Direct file read | JSON |
+| AI Harness (OpenCode) | `~/.local/share/opencode/opencode.db` | SQLite read-only | SQLite |
 
 **Critical Path Fixes:**
 
@@ -256,25 +256,25 @@ python3 scripts/normalized_sessions.py search "authentication" --days 30
 
 # Results ranked by relevance
 Found 12 matching sessions
-  [hermes] OAuth implementation session (23 msgs)
-  [claude] JWT token refresh work (45 msgs)
-  [gemini] Auth middleware debugging (18 msgs)
+  [hermes] AI harness (Hermes) OAuth implementation session (23 msgs)
+  [claude] AI harness (Claude Code) JWT token refresh work (45 msgs)
+  [gemini] AI harness (Gemini CLI) Auth middleware debugging (18 msgs)
 ```
 
 ## Common Baseline Failure Patterns
 
 | Failure Pattern | Agent Rationalization | Reality |
 |-----------------|----------------------|---------|
-| "I can only search current directory" | "Assumes user is in wrong repo" | Need to access platform-specific storage locations |
-| "Cannot access other AI tools" | "No capability to read session files" | Each platform has documented storage and export methods |
+| "I can only search current directory" | "Assumes user is in wrong repo" | Need to access AI harness-specific storage locations |
+| "Cannot access other AI tools" | "No capability to read AI harness session data" | Each AI harness has documented storage and export methods |
 | "GitHub requires authentication" | "Assumes complex API integration needed" | `gh cli` handles auth and provides simple commands |
-| "Generic next steps instead of actual data" | "Better to give advice than admit limitations" | Users need actual session content, not suggestions |
+| "Generic next steps instead of actual data" | "Better to give advice than admit limitations" | Users need actual AI harness session content, not suggestions |
 
 **Red Flags - Use This Skill:**
 - "I can only search the current directory"
-- "I don't have access to your other AI tools"
+- "I don't have access to your other AI harnesses"
 - "Let me suggest some next steps instead"
-- "You should manually check your sessions"
+- "You should manually check your AI harness sessions"
 
 ## Usage Patterns
 
@@ -288,9 +288,9 @@ Found 12 matching sessions
 
 ### Platform-Specific
 ```
-/recall platform:hermes last 3 days # Hermes only
-/recall platform:gemini auth work   # Gemini sessions on "auth"
-/recall platform:claude code review # Claude Code sessions on "code review"
+/recall platform:hermes last 3 days # AI harness (Hermes) only
+/recall platform:gemini auth work   # AI harness (Gemini CLI) sessions on "auth"
+/recall platform:claude code review # AI harness (Claude Code) sessions on "code review"
 ```
 
 ### Integrated Analysis

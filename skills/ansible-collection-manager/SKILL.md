@@ -49,7 +49,7 @@ Trigger this skill when users ask about:
 
 ## Core Analysis Tools
 
-All tools are exposed via **Model Context Protocol (MCP)** for use with GenAI CLI applications (claude-code, gemini-cli, antigravity, opencode). Each tool can also be run directly as a Python script.
+All tools are exposed via **Model Context Protocol (MCP)** for use with AI harnesses (e.g., Claude Code, Gemini CLI, antigravity, opencode). Each tool can also be run directly as a Python script.
 
 ### MCP Server
 
@@ -203,7 +203,7 @@ python scripts/role_mapper.py /path/to/collection --format mermaid
 
 ## MCP Server Setup
 
-To use these tools with GenAI CLI applications (claude-code, gemini-cli, antigravity, opencode/oh-my-opencode):
+To use these tools with AI harnesses (e.g., Claude Code, Gemini CLI, antigravity, opencode/oh-my-opencode):
 
 ### 1. Configure MCP Server
 

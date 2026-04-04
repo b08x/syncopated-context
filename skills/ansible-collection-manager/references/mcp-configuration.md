@@ -1,6 +1,6 @@
 # MCP Server Configuration Examples
 
-This directory contains configuration examples for exposing the Ansible Collection Manager tools via MCP to various GenAI CLI applications.
+This directory contains configuration examples for exposing the Ansible Collection Manager tools via MCP to various AI harnesses.
 
 ## Server Architecture
 

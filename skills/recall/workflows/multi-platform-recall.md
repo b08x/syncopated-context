@@ -4,8 +4,9 @@
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  Claude Code    │     │   Gemini CLI     │     │    Hermes       │
-│  JSONL files    │     │   JSON files     │     │   SQLite DB    │
+│ AI Harness      │     │ AI Harness       │     │ AI Harness      │
+│ (Claude Code)   │     │ (Gemini CLI)     │     │ (Hermes)        │
+│ JSONL files     │     │ JSON files       │     │ SQLite DB       │
 └────────┬────────┘     └────────┬─────────┘     └────────┬────────┘
          │                       │                         │
          └───────────────────────┼─────────────────────────┘
@@ -143,7 +144,7 @@ python3 scripts/normalized_sessions.py extract --days 7 --platforms all
 
 # Output: Unified ParsedSession schema
 {
-  "claude": [
+  "ai_harness_claude": [
     {
       "id": "session_abc123",
       "project_path": "/home/user/project",
@@ -156,14 +157,14 @@ python3 scripts/normalized_sessions.py extract --days 7 --platforms all
       "user_message_count": 12,
       "assistant_message_count": 33,
       "tool_call_count": 28,
-      "source_tool": "claude",
+      "source_tool": "ai_harness_claude",
       "usage": {"input_tokens": 15000, "output_tokens": 8000},
       "messages": [...]
     }
   ],
-  "hermes": [...],
-  "gemini": [...],
-  "opencode": [...]
+  "ai_harness_hermes": [...],
+  "ai_harness_gemini": [...],
+  "ai_harness_opencode": [...]
 }
 ```
 
@@ -346,18 +347,18 @@ def generate_one_thing(timeline, correlation):
 
 | Platform | Sessions | Time Range | Key Topics |
 |----------|----------|------------|------------|
-| Claude Code | 5 | 2025-03-25 to 2025-03-30 | auth refactor, session recall |
-| Hermes | 2 | 2025-03-27 to 2025-03-28 | debugging, API integration |
-| Gemini CLI | 1 | 2025-03-29 | code review |
+| AI Harness (Claude Code) | 5 | 2025-03-25 to 2025-03-30 | auth refactor, session recall |
+| AI Harness (Hermes) | 2 | 2025-03-27 to 2025-03-28 | debugging, API integration |
+| AI Harness (Gemini CLI) | 1 | 2025-03-29 | code review |
 
 ### Timeline Correlation
 
 ```
-2025-03-25 09:30 [Claude] Started auth refactor discussion
+2025-03-25 09:30 [AI Harness (Claude)] Started auth refactor discussion
 2025-03-25 09:45 [GitHub] Commit: "WIP: authentication middleware"
 2025-03-25 10:15 [Restic] Modified: src/auth.py, tests/auth_test.py
 
-2025-03-27 14:20 [Hermes] Debugging session timeout issues
+2025-03-27 14:20 [AI Harness (Hermes)] Debugging session timeout issues
 2025-03-27 14:35 [GitHub] PR created: "Fix session timeout handling"
 2025-03-27 15:00 [Restic] Modified: lib/session_manager.py
 ```
@@ -366,7 +367,7 @@ def generate_one_thing(timeline, correlation):
 
 **Topic**: Authentication refactor (leverage score: 8/10)
 
-**Action**: Complete the session timeout fix from your Hermes debugging session by merging PR #23 and updating the auth middleware tests based on your Claude Code session insights.
+**Action**: Complete the session timeout fix from your AI harness debugging session by merging PR #23 and updating the auth middleware tests based on your session insights.
 
 **Reasoning**: Highest momentum topic spanning 3 platforms with recent GitHub activity and unblocked path to completion.
 

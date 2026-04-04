@@ -47,7 +47,7 @@ bash skills/bashsmithing-scaffold/scripts/scaffold.sh \
   --name "my-tool" --namespace "MyTool" --output "../my-tool" --mode minimal
 ```
 
-Then open the repo in Claude Code — the `bashsmithing-scaffold` skill handles the rest interactively.
+Then open the repo in your AI harness — the `bashsmithing-scaffold` skill handles the rest interactively.
 
 ---
 
