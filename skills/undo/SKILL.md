@@ -49,7 +49,7 @@ If multiple restore options exist, I'll:
 
 **Important**: I will NEVER:
 - Add "Co-authored-by" or any Claude signatures
-- Include "Generated with Claude Code" or similar messages
+- Include "Generated with AI harness" or similar messages
 - Modify git config or user credentials
 - Add any AI/assistant attribution to the commit
 

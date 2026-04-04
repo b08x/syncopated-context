@@ -18,7 +18,7 @@ Let me analyze what we accomplished by:
 2. Checking git changes and commit history
 3. Summarizing completed work and pending items
 
-I'll update the appropriate CLAUDE.md file with:
+I'll update the appropriate environment guidance file (e.g., CLAUDE.md) with:
 - Session summary and accomplishments
 - Files modified and their purposes
 - Decisions made and rationale
@@ -44,9 +44,9 @@ I'll update the appropriate CLAUDE.md file with:
 - Technical debt considerations
 
 **Important**: I will NEVER:
-- Add "Co-authored-by" or any Claude signatures
-- Include "Generated with Claude Code" or similar messages
+- Add "Co-authored-by" or any signatures
+- Include "Generated with AI harness" or similar messages
 - Modify git config or user credentials
 - Add any AI/assistant attribution to the commit
 
-I'll preserve this summary in your memory system, ensuring continuity for future sessions and seamless handoffs to team members. This integrates with Claude Code CLI's native memory management for persistent context.
+I'll preserve this summary in your memory system, ensuring continuity for future sessions and seamless handoffs to team members. This integrates with the AI harness's native memory management for persistent context.

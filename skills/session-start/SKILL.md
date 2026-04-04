@@ -1,6 +1,6 @@
 ---
 name: session-start
-description: Begin a documented coding session using Claude Code CLI's memory system with session tracking and progress management.
+description: Begin a documented coding session using the AI harness's memory system with session tracking and progress management.
 license: MIT
 allowed-tools: Read Edit Grep Glob Bash Write
 metadata:
@@ -11,9 +11,9 @@ metadata:
 
 # Start Coding Session
 
-I'll begin a documented coding session using Claude Code CLI's memory system.
+I'll begin a documented coding session using the AI harness's memory system.
 
-I'll integrate with the native memory system by updating CLAUDE.md:
+I'll integrate with the native memory system by updating the environment guidance file (e.g., CLAUDE.md):
 - Session timestamp and context
 - Current git state and branch
 - Session goals and objectives
@@ -21,19 +21,19 @@ I'll integrate with the native memory system by updating CLAUDE.md:
 
 Let me check for existing memory files and update them appropriately:
 - Project memory (./CLAUDE.md) for team-shared context
-- User memory (~/.claude/CLAUDE.md) for personal session tracking
+- User memory (harness-specific path) for personal session tracking
 
 Please tell me:
 1. What are we working on today?
 2. What specific goals do you want to accomplish?
 3. Any context I should know about?
 
-I'll add this session context to your memory system using the `/memory` command functionality, ensuring our progress is tracked and can be resumed later. This integrates seamlessly with Claude Code CLI's native memory management rather than creating a separate system.
+I'll add this session context to your memory system using available memory commands, ensuring our progress is tracked and can be resumed later. This integrates seamlessly with the AI harness's native memory management rather than creating a separate system.
 
 **Important**: I will NEVER:
-- Add "Co-authored-by" or any Claude signatures
-- Include "Generated with Claude Code" or similar messages
+- Add "Co-authored-by" or any signatures
+- Include "Generated with AI harness" or similar messages
 - Modify git config or user credentials
 - Add any AI/assistant attribution to the commit
 
-The session context will be preserved in the appropriate CLAUDE.md file for future reference and continuation.
+The session context will be preserved in the appropriate environment guidance file for future reference and continuation.

@@ -77,7 +77,7 @@ After analysis, I'll ask: "How would you like to track these predictions?"
 
 **Important**: I will NEVER:
 - Add "Created by Claude" or any AI attribution to issues
-- Include "Generated with Claude Code" in descriptions
+- Include "Generated with AI harness" in descriptions
 - Modify repository settings or permissions
 - Add any AI/assistant signatures or watermarks
 

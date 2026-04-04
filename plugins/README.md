@@ -1,6 +1,6 @@
 # syncopated-context plugins
 
-Plugin ecosystem for Claude Code featuring specialized development and productivity tools.
+Plugin ecosystem for AI harnesses featuring specialized development and productivity tools.
 
 ---
 
@@ -19,7 +19,7 @@ Thirteen specialized agents handle Ruby code generation, TUI scaffolding, AI/NLP
 ### notebook
 **Multi-platform AI session recall and analysis**
 
-Comprehensive session aggregation across Claude Code, Hermes, Gemini CLI, and OpenCode with GitHub commit correlation and restic backup diff analysis. Temporal correlation engine with cross-platform synthesis and actionable next steps.
+Comprehensive session aggregation across multiple AI harnesses (including Claude Code, Hermes, Gemini CLI, and OpenCode) with GitHub commit correlation and restic backup diff analysis. Temporal correlation engine with cross-platform synthesis and actionable next steps.
 
 - **Version**: 2.0.0
 - **Category**: Productivity
@@ -82,7 +82,7 @@ Shellcheck integration, BATS testing framework, and TUI scaffolding using the Gu
 
 ## Installation
 
-Install the entire plugin suite:
+Install the entire plugin suite for Claude Code:
 
 ```bash
 claude plugin add syncopated-context

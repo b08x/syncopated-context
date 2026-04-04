@@ -5,7 +5,7 @@ Import all sources from a NotebookLM notebook into the vault as linked `notebook
 ## Inputs
 
 - **notebook-slug**: short kebab-case name for the notebook (e.g. `obsidian-x-claude-code`)
-- **dashboard-title**: human-readable title for the dashboard (e.g. `Obsidian x Claude Code Research`)
+- **dashboard-title**: human-readable title for the dashboard (e.g. `Obsidian x AI Harness Research`)
 
 If user doesn't specify these, derive from `notebooklm status` output.
 

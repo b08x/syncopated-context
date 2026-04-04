@@ -1,6 +1,6 @@
 # agent commands
 
-Claude Code command definitions. Each `.md` file is a command that activates on trigger phrases. Defines behavior. Not implementation.
+AI harness command definitions. Each `.md` file is a command that activates on trigger phrases. Defines behavior. Not implementation.
 
 ## Structure
 

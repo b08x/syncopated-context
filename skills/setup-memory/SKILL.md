@@ -1,6 +1,6 @@
 ---
 name: setup-memory
-description: Help users build their CLAUDE.md file and configure memory system for optimal Claude Code experience.
+description: Help users build their environment guidance file and configure memory system for optimal AI harness experience.
 license: MIT
 allowed-tools: Read Edit Grep Glob Bash Write
 metadata:

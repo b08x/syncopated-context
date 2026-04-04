@@ -1,10 +1,10 @@
 # Soul
 
-## CLAUDE.md
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Environment Guidance
+This file provides guidance to the AI harness when working with code in this repository.
 
 ## Repository Purpose
-This is a multi-plugin Claude Code marketplace repository called **syncopated-context**. It distributes multiple specialized development plugins:
+This is a multi-plugin marketplace repository called **syncopated-context**. It distributes multiple specialized development plugins and skills for cross-platform AI session synthesis and automated engineering:
 
 - **rubysmithing** — Convention-aware Ruby development suite with 13 specialized agents
 - **bashsmithing** — Bash development suite with shellcheck, BATS testing, and TUI scaffolding  

@@ -2,11 +2,12 @@
 
 <div align="center">
 
-**Claude Code plugin marketplace for multi-domain development workflows**
+**GitAgent-compliant development ecosystem for cross-platform AI session synthesis and automated engineering workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.2.0-green.svg)](.claude-plugin/marketplace.json)
-[![Ruby](https://img.shields.io/badge/ruby-3.4.4+-red)](.tool-versions)
+[![GitAgent Spec](https://img.shields.io/badge/GitAgent-0.1.0-blue.svg)](agent.yaml)
+[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](agent.yaml)
+[![Python](https://img.shields.io/badge/python-3.12+-red)](.python-version)
 
 </div>
 
@@ -14,67 +15,98 @@
 
 ## Features
 
-- **Adaptive convention detection** — automatically detects Ruby conventions from `.rubocop.yml`, `standard` in Gemfile, or `.rubysmith` config; generates compliant code with explicit target stated
-- **Multi-platform session recall** — aggregates AI interactions from Claude Code, Hermes, Gemini CLI, and OpenCode with temporal correlation and cross-platform synthesis  
-- **Shared-root plugin architecture** — agents, references, and scripts shared across skills eliminate duplication while maintaining modularity
-- **Convention mode switching** — single-file stdlib scripts receive minimal output; complex projects activate full conventions with Zeitwerk compliance and structured logging
-- **Terminal UI scaffolding** — generates BubbleTea/Lipgloss/Huh interfaces from validated templates with complete keyboard handling and component hierarchy
-- **LLM pipeline integration** — covers chatbots, tool-calling agents, vector search, DSPy reasoning modules, and MCP server scaffolding
-- **GitHub activity correlation** — synchronizes session timelines with commit history and PR activity using `gh cli` integration
-- **SIFT Protocol QA audits** — structured code quality reports with weighted rubrics and file:line evidence citations
+- **GitAgent Specification Compliance** — adheres to the v0.1.0 standard for version-controlled AI agent definitions
+- **Harness-Agnostic Operation** — maintains consistent skill availability across multiple AI harnesses with unified interface standards
+- **Multi-Platform Session Synthesis** — aggregates interactions from disparate AI platforms with temporal correlation and unified analysis
+- **Deterministic Implementation Strategy** — executes feature adaptation through a 5-phase workflow with mandatory planning and state persistence
+- **Linguistic Agent Personas** — employs Systemic Functional Linguistics (SFL) archetypes for specialized engineering and architectural oversight
+- **Universal Rule System** — enforces directory-agnostic path resolution and normalized date/time handling across all runtimes
+- **Convention-Aware Automation** — detects project-specific configurations (RuboCop, StandardRB) to adapt output behavior dynamically
+
+---
+
+## Architecture
+
+The ecosystem is structured as a modular meta-harness, separating core agent definitions from specialized capability modules and legacy integrations.
+
+```text
+syncopated-context/
+├── agent.yaml                 # GitAgent v0.1.0 manifest
+├── SOUL.md                    # Agent identity and marketplace context
+├── RULES.md                   # Universal behavioral and technical constraints
+├── skills/                    # 25 specialized capability modules
+│   ├── implement/             # Phase-based feature adaptation
+│   ├── recall/                # Cross-platform session analysis
+│   └── [23 other skills]      # Domain-specific automation
+├── tools/                     # MCP-compatible YAML schemas
+│   ├── multi-platform-recall  # Unified session extraction
+│   └── [other tools]          # External service integrations
+├── plugins/                   # Legacy plugin suites
+│   ├── rubysmithing/          # SFL-persona based Ruby development
+│   └── bashsmithing/          # Shellcheck-integrated Bash automation
+└── tasks/                     # Implementation definitions and reviews
+```
 
 ---
 
 ## Installation
 
 <details>
-<summary>Claude Code — Plugin Marketplace (Recommended)</summary>
+<summary>Claude Code</summary>
 
-Install the complete plugin suite:
 ```bash
+# Install as GitAgent specification
+claude agent add https://github.com/b08x/syncopated-context
+
+# Or install legacy plugin bundle (deprecated)
 claude plugin add syncopated-context
 ```
-
-Or install individual plugins:
-```bash
-claude plugin add syncopated-context/rubysmithing
-claude plugin add syncopated-context/notebook
-```
-
-After installation, all skills become available in any Claude Code session.
 
 </details>
 
 <details>
-<summary>Manual Installation from Source</summary>
+<summary>Hermes</summary>
+
+```bash
+# Clone and configure as agent
+git clone https://github.com/b08x/syncopated-context
+hermes agent add ./syncopated-context
+```
+
+</details>
+
+<details>
+<summary>Gemini CLI</summary>
+
+```bash
+# Install agent specification
+gemini agent install https://github.com/b08x/syncopated-context
+```
+
+</details>
+
+<details>
+<summary>OpenCode</summary>
+
+```bash
+# Add to agent registry
+opencode add-agent syncopated-context https://github.com/b08x/syncopated-context
+```
+
+</details>
+
+<details>
+<summary>Manual Installation</summary>
 
 ```bash
 git clone https://github.com/b08x/syncopated-context
 cd syncopated-context
 
-# Install both plugins
-claude plugin add ./plugins/rubysmithing
-claude plugin add ./plugins/notebook
-```
+# Install Python dependencies
+uv sync
 
-</details>
-
-<details>
-<summary>Development Environment (Contributors)</summary>
-
-Requires Ruby 3.4.4+ via asdf or rbenv:
-
-```bash
-cd plugins/rubysmithing
-bundle install
-```
-
-For bash plugin development:
-```bash
-# Install dependencies
-brew install shellcheck bats-core gum
-# or
-sudo apt install shellcheck bats gum
+# Verify installation
+python main.py --help
 ```
 
 </details>
@@ -85,234 +117,80 @@ sudo apt install shellcheck bats gum
 
 ### Command Synopsis
 
+The agent is invoked via the standard harness-specific prefixes (e.g., `/` or `!`). Core workflows follow a plan-execute-validate lifecycle.
+
 ```bash
-# Ruby development workflows
-rubysmithing:plan           # Hub orchestrator for all Ruby tasks
-rubysmithing:scaffold       # Project initialization via rubysmith/gemsmith
-rubysmithing:refactor       # Convention fixes and Zeitwerk compliance
-rubysmithing:genai          # LLM, RAG, embeddings, MCP servers
-rubysmithing:tui            # Terminal UI scaffolding
+# Session Analysis
+/recall [platform] [timeframe] [topic]
 
-# Multi-platform session analysis
-recall yesterday            # Cross-platform session retrieval
-recall --github owner/repo  # Correlate with GitHub activity
-recall platform:claude debugging session
+# Feature Implementation
+/implement [source_url_or_path] -- [description]
 
-# Repository-level workflows  
-/implement                  # Implementation planning and execution
-/refactor                   # Code refactoring workflows
-/containerize              # Docker deployment automation
+# Code Refactoring
+/refactor [path] -- [instruction]
 ```
 
-### Ruby Development Options
+### Options
 
-#### Basic Operations
-- `rubysmithing:analyse`: Static analysis with Gemba Walk methodology and root-cause tracing
-- `rubysmithing:context`: Gem API verification using Context7 MCP with SQLite caching
-- `rubysmithing:sift`: QA audits with weighted rubric and evidence citations
-- `rubysmithing:yardoc`: Documentation generation with type inference
+**Recall (Session Extraction)**
+- `--platform`: Target platform (claude-code, gemini-cli, opencode, hermes, all)
+- `--timeframe`: Extraction window (today, yesterday, last-week, last-month)
+- `--topic`: Optional keyword filter for semantic pruning
 
-#### Advanced Workflows
-- `rubysmithing:genai`: LLM and RAG pipeline scaffolding
-- `rubysmithing:tui`: BubbleTea/Lipgloss terminal interface generation
-- `rubysmithing:scaffold`: New project initialization with convention detection
-
-### Session Recall Options
-
-#### Platform-Specific Recall
-- `recall platform:hermes <query>`: Search Hermes session database
-- `recall platform:gemini <query>`: Parse Gemini CLI session files  
-- `recall platform:opencode <query>`: Analyze OpenCode structured logs
-
-#### Integrated Analysis
-- `--github <owner/repo>`: Correlate sessions with commit history
-- `--backup <path>`: Include restic backup diff analysis
-- `<timeframe>`: Natural language time expressions (yesterday, last week, 2025-03-25)
+**Implement (Feature Adaptation)**
+- `--new`: Force initialization of a fresh implementation plan
+- `--resume`: Continue from the last recorded checkpoint in `implement/state.json`
+- `--status`: Display current implementation progress and pending tasks
 
 ### Examples
 
-**Ruby Project Scaffolding:**
+**Multi-Platform Correlation:**
 ```bash
-# Generate convention-compliant Ruby project
-rubysmithing:scaffold -- cli tool for API monitoring with circuit breakers
-
-# Build terminal dashboard with TUI framework
-rubysmithing:tui -- two-panel interface: file browser left, content preview right
+# Analyze sessions across all platforms regarding database migrations
+/recall --platform all --timeframe last-week --topic "postgres migration"
 ```
 
-**Code Quality Analysis:**
+**Systematic Implementation:**
 ```bash
-# Run comprehensive QA audit
-rubysmithing:sift -- audit lib/ directory
-
-# Perform root-cause analysis on failing tests
-rubysmithing:analyse -- trace spec/models/user_spec.rb failures
+# Port a feature from a remote repository with architecture adaptation
+/implement https://github.com/user/repo -- adapt auth service to use local Redis cache
 ```
 
-**Cross-Platform Session Analysis:**
+**Ruby Architectural Oversight:**
 ```bash
-# Reconstruct work across all platforms
-recall authentication refactor last month
-
-# Correlate development activity with GitHub
-recall --github myorg/project --backup ~/Workspace database migration
-
-# Synthesize debugging sessions  
-recall platform:claude platform:hermes schema validation errors
+# Invoke the SFL-persona based Ruby orchestrator
+/rubysmithing:plan Write a Sequel-backed data pipeline with async processing
 ```
 
 ---
 
-## Plugin Architecture
+## Technical Standards
 
-### rubysmithing (Ruby Development Suite)
+### Path Resolution
+Resolution must be directory-agnostic. All scripts utilize `Path(__file__)` or platform-equivalents to resolve resource paths relative to their own location rather than the current working directory.
 
-Shared-root pattern with 15 specialized agents handling distinct development domains:
+### Session Persistence
+The `implement` skill maintains state in the project root under the `implement/` directory:
+- `plan.md`: The structured implementation checklist and architectural mapping.
+- `state.json`: The machine-readable checkpoint and progress tracker.
 
-```
-rubysmithing/
-├── agents/                     # Specialized development roles
-│   ├── context-engineer.md     # Gem API verification and caching
-│   ├── cognitive-architect.md  # System design and patterns
-│   ├── ruby-diagnostics-engineer.md # Debugging and analysis
-│   └── [12 other domain experts]
-├── commands/                   # Workflow orchestration
-│   ├── context.md              # API verification workflow
-│   ├── audit.md                # Quality assessment commands  
-│   └── flow.md                 # Development pipeline management
-├── references/                 # Shared knowledge base
-│   ├── gem-registry.md         # Curated gem recommendations
-│   ├── design-patterns.md      # Ruby architecture patterns
-│   └── genai-patterns.md       # LLM integration patterns
-├── scripts/                    # Automation utilities
-│   └── context_cache.rb        # SQLite gem API cache
-└── skills/                     # Specialized capabilities
-    ├── plan/                   # Hub orchestrator with routing logic
-    ├── scaffold/               # Project initialization
-    ├── genai/                  # LLM pipeline scaffolding
-    └── [6 other specialized skills]
-```
-
-### notebook (Session Recall Suite)
-
-Multi-platform extraction with correlation engines:
-
-```
-notebook/
-├── skills/
-│   ├── recall/
-│   │   ├── scripts/
-│   │   │   ├── multi-platform-extract.py    # Unified extraction across platforms
-│   │   │   ├── extract-sessions.py          # Claude Code JSONL parser
-│   │   │   └── session-graph.py             # NetworkX correlation analysis
-│   │   └── workflows/
-│   │       └── recall.md                    # Query routing and classification
-│   └── notebooklm/                          # Document processing integration
-└── templates/                               # Session analysis templates
-```
-
----
-
-## Configuration File
-
-Plugin behavior can be customized through `.claude-plugin/settings.json` for repository-specific conventions or through individual plugin configurations for system-wide preferences.
-
-### Ruby Conventions Configuration
-
-```json
-{
-  "rubysmithing": {
-    "convention_source": "rubocop",
-    "default_mode": "standard", 
-    "cache_ttl": 3600,
-    "zeitwerk_compliance": true
-  }
-}
-```
-
-### Session Recall Configuration  
-
-```json
-{
-  "notebook": {
-    "platforms": ["claude", "hermes", "gemini"],
-    "github_integration": true,
-    "backup_correlation": true,
-    "session_retention_days": 90
-  }
-}
-```
-
-### Configuration Options
-
-#### Ruby Development
-- `convention_source`: Detection method for Ruby conventions (rubocop, standard, rubysmith)
-- `default_mode`: Convention enforcement level (lite, standard)
-- `cache_ttl`: Gem API cache expiration in seconds
-- `zeitwerk_compliance`: Enforce autoloader-compatible file structure
-
-#### Session Recall
-- `platforms`: Enabled session sources for recall analysis
-- `github_integration`: Include GitHub activity correlation
-- `backup_correlation`: Enable restic backup diff analysis
-- `session_retention_days`: Local session cache retention period
-
----
-
-## Convention Modes
-
-Ruby development tasks automatically select between two convention enforcement levels before generating output.
-
-### Lite Mode
-
-Activates for single-file requests under ~50 lines using stdlib dependencies. Minimal requirements:
-- No external gem dependencies beyond stdlib
-- Optional `frozen_string_literal` pragma
-- Basic error handling without circuit breakers
-- Simple logging via built-in mechanisms
-
-### Standard Mode  
-
-Default for multi-file projects or those requiring external dependencies. Full convention enforcement:
-
-| Convention | Requirement |
-|------------|-------------|
-| **Magic comment** | `# frozen_string_literal: true` on every file |
-| **Autoloading** | Zeitwerk-compliant path ↔ class name mapping |
-| **Utility modules** | `module_function` over `extend self` |
-| **Logging** | Structured logging via `journald-logger` |
-| **Concurrency** | `Async {}` fiber blocks for I/O operations |
-| **External calls** | `circuit_breaker` wrapping for API calls |
-| **Method signatures** | Keyword arguments for 3+ parameters |
-
-Convention detection cascade: `.rubocop.yml` → `standard` in Gemfile → `.rubysmith` config → community standards.
-
----
-
-## Platform Support
-
-### AI Session Sources
-
-| Platform | Storage Location | Export Method | Format |
-|----------|------------------|---------------|--------|
-| **Claude Code** | `~/.claude/projects/*/` | Native JSONL parsing | JSONL |
-| **Hermes** | SQLite database | `hermes sessions export` | JSONL |  
-| **Gemini CLI** | `~/.config/gemini/sessions/` | JSON file parsing | JSON |
-| **OpenCode** | `~/.config/opencode/logs/` | Log file parsing | Structured logs |
-
-### External Integrations
-
-- **GitHub** — commit correlation, PR activity analysis via `gh cli`
-- **Restic** — backup diff analysis and file evolution tracking  
-- **NotebookLM** — document processing and research artifact import
-- **Context7 MCP** — real-time gem API verification and caching
+### Agent Personas
+Specialized agents in the `rubysmithing` suite employ distinct personas to minimize "the telephone game" during task delegation:
+- **The Bureaucrat**: Decisive orchestration and routing.
+- **Other Steve**: Adversarial architectural translation and blueprinting.
+- **The Code Janitor**: Pedantic convention compliance and refactoring.
 
 ---
 
 ## Contributing
 
-Issues and pull requests welcome. Run `bundle exec rubocop` and `bundle exec rspec` from `plugins/rubysmithing/` before submitting; `bundle exec git-lint` validates commit message format.
+Contributions are welcome via issues and pull requests. Submissions must adhere to the GitAgent specification guidelines. Run the validation suite before submitting:
+
+```bash
+python scripts/validate-migration.py  # Validate GitAgent compliance
+python scripts/test-skills.py         # Verify skill functionality
+```
 
 ## License
 
-[MIT](LICENSE) — Robert Pannick
+[MIT](LICENSE)
