@@ -1,3 +1,38 @@
+## [unreleased]
+
+### 🚀 Features
+
+- *(marketplace)* Add notebook plugin with research and recall skills
+- *(notebook/recall)* Add checkpoint-based session extraction with multi-platform support
+- *(rubysmithing,notebook)* Add systems-observer agent and expand recall capabilities
+- *(recall)* Implement normalized session extraction and unified recall workflow
+- *(skills)* Add notebooklm and readme-generator skills
+- *(core)* Initialize gitagent specification
+- *(agents)* Add agent roles and command definitions
+- *(skills)* Migrate and standardize agent skills and tools
+- *(plugins)* Integrate bashsmithing and update rubysmithing
+
+### 🐛 Bug Fixes
+
+- *(notebook/recall)* Add missing flags to restic snapshots command
+
+### 💼 Other
+
+- *(dev)* Add validation scripts, tasks, and specification documents
+
+### 🚜 Refactor
+
+- *(skills)* Move recall skill to top-level and remove plugins/notebook
+
+### 📚 Documentation
+
+- Update repository documentation and marketplace manifest
+- *(agnostic)* Replace specific AI agent references with agnostic terminology
+- *(agnostic)* Finalize harness-agnostic terminology across plugins and skills
+
+### ⚙️ Miscellaneous Tasks
+
+- *(repo)* Update repository configuration and dev container
 ## [2.1.0] - 2026-03-30
 
 ### 🚀 Features
@@ -36,3 +71,4 @@
 - Add .worktrees/ to .gitignore
 - Update SKILL.md delegation table and bump version to 2.1.0
 - Remove migration reference doc from agents/ directory
+- Updated changelog
