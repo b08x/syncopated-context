@@ -4,8 +4,6 @@ argument-hint: "<app concept description>"
 allowed-tools: ["Read", "Grep", "Glob", "Write", "Bash", "Agent"]
 ---
 
-Run the `/rubysmithing:vibe` workflow for the app concept described in the arguments.
-
 ## Step 1 — Tree of Thoughts Exploration
 
 Dispatch the `agentic-operations-lead` agent with:

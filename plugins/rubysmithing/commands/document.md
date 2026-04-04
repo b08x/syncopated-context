@@ -4,7 +4,6 @@ argument-hint: "<path-or-glob>"
 allowed-tools: ["Read", "Grep", "Glob", "Write", "Bash", "Agent"]
 ---
 
-Run the `/rubysmithing:document` workflow on the target provided in the arguments.
 
 ## Step 1 — YARD API Documentation
 

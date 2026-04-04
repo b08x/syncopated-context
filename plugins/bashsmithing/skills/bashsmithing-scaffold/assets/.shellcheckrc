@@ -1,0 +1,30 @@
+# Shellcheck configuration for Bashsmith projects.
+# Place this file in your project root. Shellcheck reads it automatically.
+# See: https://www.shellcheck.net/wiki/
+
+# Require strict mode (SC1090 = "shellcheckrc sourcing" — we don't use it here)
+# Enable all optional warnings:
+enable=all
+
+# Disable patterns that are too strict for idiomatic Bash or that conflict
+# with bashsmith conventions:
+disable=
+  SC1090          # Can't follow non-constant source — we use constant paths
+  SC1091           # Not following sourced file — same reason
+  SC2034           # Variable appears unused — may be used by caller
+  SC2317           # Command not in interactive mode — false positive for library files
+
+# Source paths to assume exist (don't warn about missing sourced files):
+source-path=
+  lib/
+  settings/
+
+# Exclude specific files (test helpers, generated files):
+exclude=
+  bats_helper_load
+  bats_helper_stub
+  bats_helper_source
+
+# Common shellcheck codes to understand why they're disabled/enabled:
+# SC1090/1091 — bashsmith lib files are always at fixed paths, not dynamic
+# SC2034      — bashsmithing pattern: functions output data, vars may be ephemeral

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# bin/setup — Project setup and environment verification.
+# Uses lib/bootstrap.sh for robust dependency management.
+
+set -euo pipefail
+IFS=$'\n\t'
+
+# Determine project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Source libraries
+# shellcheck source=lib/bootstrap.sh
+source "${PROJECT_ROOT}/lib/bootstrap.sh"
+
+main() {
+  echo -e "${BASHSMITH_MAGENTA}${BASHSMITH_BOLD}===> Setting up project...${BASHSMITH_NC}\n"
+
+  Bootstrap::detect_os
+  Bootstrap::check_git
+  Bootstrap::install_uv
+  Bootstrap::check_python "3.11"
+  Bootstrap::setup_path "$HOME/.local/bin"
+
+  # Optional: Check for Node if the project needs it
+  # Bootstrap::check_node "22"
+
+  echo -e "\n${BASHSMITH_GREEN}${BASHSMITH_BOLD}✓ Setup complete!${BASHSMITH_NC}"
+  echo -e "You can now run ${BASHSMITH_CYAN}bin/qa${BASHSMITH_NC} to verify the project."
+}
+
+main "$@"

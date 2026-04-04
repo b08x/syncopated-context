@@ -4,7 +4,6 @@ argument-hint: "<path-to-foreign-codebase-or-paste>"
 allowed-tools: ["Read", "Grep", "Glob", "Write", "Bash", "Agent"]
 ---
 
-Run the `/rubysmithing:translate` workflow on the foreign codebase provided in the arguments.
 
 ## Step 1 — Deconstruct
 

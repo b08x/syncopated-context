@@ -4,8 +4,6 @@ argument-hint: "<feature description>"
 allowed-tools: ["Read", "Grep", "Glob", "Write", "Bash", "Agent"]
 ---
 
-Run the `/rubysmithing:flow` workflow for the feature described in the arguments.
-
 ## Step 1 — Gem Context Verification
 
 Dispatch the `context-engineer` agent with:
