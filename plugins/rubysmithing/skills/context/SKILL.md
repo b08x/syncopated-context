@@ -1,88 +1,55 @@
 ---
 name: context
-description: Gem API verification sub-skill for Ruby development. Automatically activates on first mention of any Ruby gem — especially ruby_llm, sequel, async, bubbletea, dspy.rb, pgvector, huh, dry-schema, circuit_breaker, fast-mcp, or informers — and resolves current method signatures and usage examples via Context7 MCP before code is generated. Results are cached for the session and persisted to SQLite across sessions. If Context7 resolution fails or is rate-limited, falls back to the tiered degradation protocol (stale cache → gem-registry ID → WARNING block) rather than silently guessing. Pairs with plan, genai, and tui as a prerequisite step.
+description: Gem API verification sub-skill for Ruby development. Manages context boundaries by resolving current method signatures and usage examples via Context7 MCP. References a master gems inventory (CSV) for library IDs and formulates context-aware queries to ensure relevant documentation retrieval. Results are cached across sessions in SQLite. Pairs with plan, genai, and tui as a prerequisite step.
 ---
 
 # Rubysmithing — Context
 
-Context7-powered gem API resolver. Fires before any library-specific code is written.
-Caches results for the session and persists them to SQLite across sessions.
-Fails loudly — never silently. Degrades gracefully when Context7 is unreachable.
+Context7-powered gem API resolver and context boundary manager.
+Resolves method signatures and usage patterns before generating code.
 
 ## When This Skill Activates
 
-Activate on first mention of any gem not in Ruby stdlib. Priority gems that always
-warrant a fresh lookup (API surface changes frequently):
-
-- `ruby_llm`, `ruby_llm-mcp`, `ruby_llm-schema`
-- `bubbletea`, `lipgloss`, `huh`, `gum`, `ntcharts`, `bubblezone`
-- `dspy.rb`, `dspy-ruby_llm`
-- `sequel` (plugin API especially)
-- `async`, `falcon`
-- `circuit_breaker`
-- `fast-mcp`
-- `informers`
-- `dry-schema`, `dry-types`
-
+Activate on first mention of any gem not in Ruby stdlib.
 Skip lookup for: stdlib, gems already resolved this session, Lite Mode tasks.
 
-## Step 1: Check Session Cache
+## Step 1: Check Persistent Cache
 
-Before any Context7 or SQLite call, check if the gem has been resolved in this session.
-Track resolved gems mentally as:
-
-```
-session_cache = {
-  "ruby_llm" => { context7_id: "/crmne/ruby_llm", resolved: true },
-  "sequel"   => { context7_id: "/jeremyevans/sequel", resolved: true }
-}
-```
-
-If cached → use cached result directly, skip Steps 2–4.
-
-## Step 2: Check Persistent SQLite Cache
-
-Before calling Context7, check `~/.rubysmithing/context_cache.db`:
+Before calling Context7, check the SQLite persistent cache:
 
 ```bash
 result=$(ruby $CLAUDE_PLUGIN_ROOT/scripts/context_cache.rb fetch GEMNAME --json)
-# {"status":"fresh",...} → use cached entry, add to session cache, skip Steps 3–4
-# {"status":"miss"}      → proceed to Step 3
+# {"status":"fresh",...} → use cached result directly, skip Steps 2–4
 ```
 
-If `status` is `"fresh"` → use `context7_id`, `method_sigs`, and `example` fields directly,
-add to session cache, skip Steps 3–4.
+## Step 2: Resolve Library ID from Master List
 
-## Step 3: Resolve Library ID
+Consult the master list at `$CLAUDE_PLUGIN_ROOT/references/gems-inventory.csv`.
 
-Use `Context7:resolve-library-id` with the gem name.
-Check `$CLAUDE_PLUGIN_ROOT/references/gem-registry.md` first — if the gem is listed, use the pre-mapped
-Context7 ID directly without a resolve call.
+1.  **Search the CSV**: Look up the `gem` name and retrieve the `context7_id` (6th column).
+2.  **Fallback**: If not in CSV, check `$CLAUDE_PLUGIN_ROOT/references/gem-registry.md`.
+3.  **Resolve**: If still not found, use `Context7:resolve-library-id`.
 
-## Step 4: Query Documentation
+## Step 3: Formulate Context-Aware Query
 
-Use `Context7:query-docs` with a targeted query — not just the gem name.
+Use `Context7:query-docs` with a targeted query formulated from the current task context.
 
-Query format: `"[gem] [specific pattern]"`
+**Query Construction Pattern:**
+`"[gem] [functional-task] [integration-context]"`
 
 Examples:
+- `"ruby_llm tools dry-schema validation"` (when using LLM with schema validation)
+- `"sequel pgvector vector similarity search"` (when doing vector search)
+- `"bubbletea update view lifecycle"` (when building a TUI)
 
-```
-"ruby_llm chat streaming tool calling"
-"sequel dataset filter pgvector similarity"
-"async fiber barrier timeout"
-"bubbletea model update view lifecycle"
-"huh form group select input validation"
-"circuit_breaker circuit breaker threshold reset"
-"dspy.rb chain of thought signature module"
-```
+## Step 4: Extract and Verify
 
-Extract: method signatures, parameter names, minimal working example,
-deprecation warnings or breaking changes noted in docs.
+Extract method signatures, parameter names, and a minimal working example.
+Identify any deprecation warnings or breaking changes noted in the documentation.
 
 ## Step 5: Cache and Return
 
-Store the resolved result in both session cache and SQLite persistent cache:
+Store results in the persistent cache:
 
 ```bash
 ruby $CLAUDE_PLUGIN_ROOT/scripts/context_cache.rb store GEMNAME CONTEXT7_ID \
@@ -90,112 +57,23 @@ ruby $CLAUDE_PLUGIN_ROOT/scripts/context_cache.rb store GEMNAME CONTEXT7_ID \
   'GemClass.new.call'
 ```
 
-Also add to session cache mentally. If exit 1, log and continue — session cache still holds
-the result for this session.
-
 Return to the requesting skill:
-
-- Gem name + Context7 ID used
-- Relevant method signatures (verbatim from docs)
+- Verified method signatures
 - Minimal working example
-- Any deprecation or breaking change warnings
+- Any warnings (deprecation, unverified state)
 
 ---
 
-## Context7 Unavailability & Rate Limit Protocol
+## Context Boundary Management
 
-When Context7 is unreachable (network timeout, 5xx error) or rate-limited (429),
-apply the following tiered degradation — do not block code generation.
+You define the "slice" of relevant documentation.
+1.  **Scope**: Do not just fetch the gem's landing page; fetch the documentation for the specific methods needed for the task.
+2.  **Integration**: If multiple gems are being used (e.g., `dspy.rb` + `ruby_llm`), ensure the query covers how they interact.
+3.  **Freshness**: Prefer the master list and Context7 over training data to ensure current API compliance.
 
-### Tier 1 — Stale SQLite Cache (preferred fallback)
+## Degradation Protocol
 
-```bash
-result=$(ruby $CLAUDE_PLUGIN_ROOT/scripts/context_cache.rb stale GEMNAME --json)
-# Exit 0 = fresh  → use result normally
-# Exit 2 = stale  → use result, inject result["warning"] block above generated code,
-#                   flag every method call with # stale-cache
-# Exit 1 = miss   → proceed to Tier 2
-```
-
-The `"warning"` field in the JSON is pre-formatted by `staleness_warning` — inject it verbatim
-above the generated code block. Flag every method call from the stale gem with `# stale-cache`.
-Add to session cache with `stale: true` so downstream skills know.
-
-### Tier 2 — Gem Registry ID + Retry
-
-If no SQLite entry at all, check `$CLAUDE_PLUGIN_ROOT/references/gem-registry.md` for a pre-mapped
-Context7 ID and attempt a single retry with that ID directly, bypassing resolve step.
-
-If retry succeeds → store the result via Bash store command (see Step 5) and proceed normally.
-If retry fails → continue to Tier 3.
-
-### Tier 3 — Unverified Training Data (last resort)
-
-No stale cache, no registry retry success. Inject the full unverified block:
-
-```ruby
-# [WARNING: Unverified API Syntax]
-# Context7 could not resolve documentation for: [gem_name]
-# The following code is based on training data and MAY be outdated or incorrect.
-# Verify against: https://rubygems.org/gems/[gem_name] before use.
-# Run: bundle exec ruby -e "require '[gem_name]'; puts [GemClass].instance_methods"
-# to inspect the actual available API.
-```
-
-Flag every method call from the unverified gem with `# unverified` inline comment.
-
-### Rate Limit Backoff Note
-
-If Context7 returns a rate limit signal: note it to the user, apply Tier 1 or Tier 2
-immediately, and do not retry Context7 again within the same session for the
-rate-limited gem. Let the session cache serve subsequent requests.
-
----
-
-## Failure Protocol (No Match / Empty Result)
-
-If Context7 resolves but returns no documentation match for the gem:
-
-**Do not silently fall back to training data.**
-
-Apply Tier 3 (Unverified block) and proceed with best-effort generation,
-flagging every method call from the unverified gem with `# unverified`.
-
----
-
-## Gem Registry
-
-Load `$CLAUDE_PLUGIN_ROOT/references/gem-registry.md` for the full curated gem → Context7 ID mapping,
-architectural plane assignments, project archetype → gem set lookup, and
-`last_verified` dates for registry staleness detection.
-
----
-
-## SQLite Cache (Persistent Across Sessions)
-
-For frequently used gems, a local SQLite cache via Sequel prevents repeated
-Context7 lookups across separate sessions. The cache lives at:
-`~/.rubysmithing/context_cache.db`
-
-Schema (managed by `scripts/context_cache.rb`):
-
-```ruby
-create_table(:gem_cache) do
-  String  :gem_name,    null: false, unique: true
-  String  :context7_id, null: false
-  Text    :method_sigs  # JSON array of signature strings
-  Text    :example      # minimal working code example
-  Time    :resolved_at, null: false
-  Integer :ttl_days,    default: 7
-end
-```
-
-Cache invalidation: TTL of 7 days per gem (configurable per-entry).
-Stale entries are not evicted automatically — they serve as Tier 1 fallback data
-when Context7 is unavailable. Evict manually with `cache.evict(gem_name)` after
-a successful refresh.
-
-Check the persistent cache before any Context7 MCP call.
-If the cache file doesn't exist, create it on first use — do not error.
-
-See [$CLAUDE_PLUGIN_ROOT/references/cache-cli.md]($CLAUDE_PLUGIN_ROOT/references/cache-cli.md) for CLI commands, exit codes, and `--json` output shapes.
+If Context7 is unreachable:
+1.  **Tier 1**: Use stale cache from SQLite.
+2.  **Tier 2**: Use descriptions from `gems-inventory.csv` to infer behavior.
+3.  **Tier 3**: Inject `[WARNING: Unverified API Syntax]` and flag calls with `# unverified`.
