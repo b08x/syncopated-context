@@ -1,12 +1,20 @@
-# syncopated-context
+---
+title: README
+tags:
+  - gemini-scribe/project
+last updated: Tuesday, April 14th 2026, 12:40:33 pm
+---
+
+# Syncopated-context
 
 <div align="center">
 
 **GitAgent-compliant development ecosystem for cross-platform AI session synthesis and automated engineering workflows**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitAgent Spec](https://img.shields.io/badge/GitAgent-0.1.0-blue.svg)](agent.yaml)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](agent.yaml)
+[![zread](https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff)](https://zread.ai/b08x/syncopated-context)  
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)  
+[![GitAgent Spec](https://img.shields.io/badge/GitAgent-0.1.0-blue.svg)](agent.yaml)  
+[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](agent.yaml)  
 [![Python](https://img.shields.io/badge/python-3.12+-red)](.python-version)
 
 </div>
@@ -15,13 +23,13 @@
 
 ## Features
 
-- **GitAgent Specification Compliance** — adheres to the v0.1.0 standard for version-controlled AI agent definitions
-- **Harness-Agnostic Operation** — maintains consistent skill availability across multiple AI harnesses with unified interface standards
-- **Multi-Platform Session Synthesis** — aggregates interactions from disparate AI platforms with temporal correlation and unified analysis
-- **Deterministic Implementation Strategy** — executes feature adaptation through a 5-phase workflow with mandatory planning and state persistence
-- **Linguistic Agent Personas** — employs Systemic Functional Linguistics (SFL) archetypes for specialized engineering and architectural oversight
-- **Universal Rule System** — enforces directory-agnostic path resolution and normalized date/time handling across all runtimes
-- **Convention-Aware Automation** — detects project-specific configurations (RuboCop, StandardRB) to adapt output behavior dynamically
+* **GitAgent Specification Compliance** — adheres to the v0.1.0 standard for version-controlled AI agent definitions
+* **Harness-Agnostic Operation** — maintains consistent skill availability across multiple AI harnesses with unified interface standards
+* **Multi-Platform Session Synthesis** — aggregates interactions from disparate AI platforms with temporal correlation and unified analysis
+* **Deterministic Implementation Strategy** — executes feature adaptation through a 5-phase workflow with mandatory planning and state persistence
+* **Linguistic Agent Personas** — employs Systemic Functional Linguistics (SFL) archetypes for specialized engineering and architectural oversight
+* **Universal Rule System** — enforces directory-agnostic path resolution and normalized date/time handling across all runtimes
+* **Convention-Aware Automation** — detects project-specific configurations (RuboCop, StandardRB) to adapt output behavior dynamically
 
 ---
 
@@ -133,30 +141,33 @@ The agent is invoked via the standard harness-specific prefixes (e.g., `/` or `!
 ### Options
 
 **Recall (Session Extraction)**
-- `--platform`: Target platform (claude-code, gemini-cli, opencode, hermes, all)
-- `--timeframe`: Extraction window (today, yesterday, last-week, last-month)
-- `--topic`: Optional keyword filter for semantic pruning
+* `--platform`: Target platform (claude-code, gemini-cli, opencode, hermes, all)
+* `--timeframe`: Extraction window (today, yesterday, last-week, last-month)
+* `--topic`: Optional keyword filter for semantic pruning
 
 **Implement (Feature Adaptation)**
-- `--new`: Force initialization of a fresh implementation plan
-- `--resume`: Continue from the last recorded checkpoint in `implement/state.json`
-- `--status`: Display current implementation progress and pending tasks
+* `--new`: Force initialization of a fresh implementation plan
+* `--resume`: Continue from the last recorded checkpoint in `implement/state.json`
+* `--status`: Display current implementation progress and pending tasks
 
 ### Examples
 
 **Multi-Platform Correlation:**
+
 ```bash
 # Analyze sessions across all platforms regarding database migrations
 /recall --platform all --timeframe last-week --topic "postgres migration"
 ```
 
 **Systematic Implementation:**
+
 ```bash
 # Port a feature from a remote repository with architecture adaptation
 /implement https://github.com/user/repo -- adapt auth service to use local Redis cache
 ```
 
 **Ruby Architectural Oversight:**
+
 ```bash
 # Invoke the SFL-persona based Ruby orchestrator
 /rubysmithing:plan Write a Sequel-backed data pipeline with async processing
@@ -167,18 +178,21 @@ The agent is invoked via the standard harness-specific prefixes (e.g., `/` or `!
 ## Technical Standards
 
 ### Path Resolution
+
 Resolution must be directory-agnostic. All scripts utilize `Path(__file__)` or platform-equivalents to resolve resource paths relative to their own location rather than the current working directory.
 
 ### Session Persistence
+
 The `implement` skill maintains state in the project root under the `implement/` directory:
-- `plan.md`: The structured implementation checklist and architectural mapping.
-- `state.json`: The machine-readable checkpoint and progress tracker.
+* `plan.md`: The structured implementation checklist and architectural mapping.
+* `state.json`: The machine-readable checkpoint and progress tracker.
 
 ### Agent Personas
+
 Specialized agents in the `rubysmithing` suite employ distinct personas to minimize "the telephone game" during task delegation:
-- **The Bureaucrat**: Decisive orchestration and routing.
-- **Other Steve**: Adversarial architectural translation and blueprinting.
-- **The Code Janitor**: Pedantic convention compliance and refactoring.
+* **The Bureaucrat**: Decisive orchestration and routing.
+* **Other Steve**: Adversarial architectural translation and blueprinting.
+* **The Code Janitor**: Pedantic convention compliance and refactoring.
 
 ---
 

@@ -63,3 +63,18 @@
 *.yml
 
 # Add your custom patterns below this line
+.venv/
+.worktrees/
+uv.lock
+.devcontainer/
+.codemap/
+graphify-out/
+.claude/
+.ckignore
+.env
+.gitignore
+.ck/
+
+Gemfile.lock
+.hermes/
+dev/

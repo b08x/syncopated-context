@@ -6,3 +6,5 @@ docs/superpowers/
 node-compile-cache/
 
 **/graphify-out/*
+
+.ck/

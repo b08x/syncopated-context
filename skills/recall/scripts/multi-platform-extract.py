@@ -36,7 +36,8 @@ class MultiPlatformExtractor:
 
     def __init__(self):
         self.platforms = ['claude', 'hermes', 'gemini', 'opencode']
-        self.default_index_dir = Path.home() / '.recall-index'
+        # Use CWD instead of home to avoid sandbox /tmp trap
+        self.default_index_dir = Path.cwd() / '.recall-index'
 
     def extract_sessions(self, platforms: List[str], date_range: Dict,
                         topic: Optional[str] = None) -> Dict[str, List[Dict]]:

@@ -123,12 +123,14 @@
 
 ---
 
-### Prompt Hygiene
-**AVOID these anti-patterns in instructions**:
-- ❌ "Run the script from the project root" → **INSTEAD** make it directory-agnostic.
-- ❌ "Assume the CLI uses `--format json`" → **INSTEAD** check `--help` first.
-- ❌ "Hardcode `~/path/to/file`" → **INSTEAD** expand `~` to `$HOME` or use absolute paths.
-- ❌ "Use `awk '{print $1}'` and `choose 0` interchangeably" → **INSTEAD** adjust indices (1-based → 0-based).
+## Project Context
+
+This is a **multi-plugin marketplace repository** (`syncopated-context`) distributing:
+- **rubysmithing** — Ruby development suite with 13+ SFL-persona agents
+- **bashsmithing** — Bash development with shellcheck, BATS, TUI scaffolding
+- **recall** — Multi-platform AI session analysis
+
+Primary context: See `CLAUDE.md` for full repo structure and commands.
 
 ---
 
@@ -204,3 +206,60 @@
 **FOR streaming responses**:
 - Access text fragments via `chunk.content`.
 - **DO NOT use** `chunk.inspect` in production code.
+
+---
+
+### Development Commands
+
+**Ruby development** (rubysmithing plugin):
+```bash
+cd plugins/rubysmithing && bundle install
+bundle exec rubocop              # Lint
+bundle exec rubocop -a           # Autocorrect
+bundle exec rspec                # Tests
+bundle exec rspec spec/path/to/file_spec.rb  # Single test
+```
+
+**Bash development** (bashsmithing plugin):
+```bash
+shellcheck scripts/**/*.sh       # Lint
+bats test/**/*.bats            # Run BATS tests
+```
+
+**Core workflow commands**:
+```bash
+/implement     # Implementation planning
+/refactor     # Code refactoring
+/containerize  # Docker workflows
+/recall        # Multi-platform session analysis
+```
+
+---
+
+### Skill Invocation Rule
+
+**The skill name defines the WORKFLOW, not the artifact.**
+- `/github-issues` → use issue tracking workflow (don't create implementation code)
+- `/refactor` → refactor existing code (don't create new files)
+
+---
+
+### Codemap and Context7
+
+**Use Codemap CLI for Codebase Navigation**:
+```bash
+codemap .                    # Project tree
+codemap --diff               # What changed vs main branch
+codemap --deps .             # Dependency flow
+```
+
+**Use Context7 MCP for Loading Documentation**:
+- `/crewaiinc/crewai` - Main CrewAI docs
+- `/beaconbay/ck` - ck (seek): semantic code search
+- `/neolabhq/context-engineering-kit` - Context engineering techniques
+
+---
+
+### /graphify
+
+Use `/graphify` skill to convert any input (code, docs, papers, images) → knowledge graph → clustered communities → HTML + JSON + audit report

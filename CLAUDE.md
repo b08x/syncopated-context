@@ -196,11 +196,28 @@ When updating plugin versions:
 - **Individual plugins**: Each has its own `plugin.json` for standalone installation
 - **Repository-level skills**: Automatically available after any plugin installation from this marketplace
 
-## Context7 MCP Documentation Access
+## Development Guidelines
 
-### Use Context7 MCP for Loading Documentation
+### Skill Invocation Rules
 
-Context7 MCP is available to fetch up-to-date documentation with code examples.
+**The skill name defines the WORKFLOW, not the artifact to create.**
+
+| Skill Invoked | Interpretation | Common Mistake |
+|---------------|----------------|----------------|
+| `github-issues` | Use issue tracking workflow (create/manage issues) | Creating implementation code instead of issue |
+| `reflexion:reflect` | Evaluate and critique work quality | Rushing to fix without analysis |
+| `github-repo-management` | Manage repository structure | Assuming repo already exists |
+
+**Rule**: When user invokes a skill with a request, apply the skill's workflow to the request. Do not conflate "feature request" (issue subject) with "implement feature" (development work).
+
+**Example from reflection**:
+- User: "feature add: new plugin combining X, Y, Z" + `github-issues` skill
+- Incorrect: Write `skills/new-plugin/SKILL.md` (implementing)
+- Correct: Create GitHub issue describing the feature request
+
+### Context7 MCP Documentation Access
+
+Use Context7 MCP for fetching up-to-date documentation with code examples.
 
 **Recommended library IDs**:
 
