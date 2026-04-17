@@ -21,17 +21,60 @@ from datetime import datetime, timezone, timedelta
 # =============================================================================
 
 DEFAULT_DAYS = 7
-DEFAULT_PLATFORMS = ["claude", "hermes", "gemini", "opencode"]
+DEFAULT_PLATFORMS = ["claude", "hermes", "gemini", "opencode", "obsidian"]
 OUTPUT_DIR = Path("/tmp/recall-output")
 
 # Resolve paths relative to this script's directory (not cwd)
 SCRIPT_DIR = Path(__file__).parent.resolve()
 NORMALIZED_SESSIONS_SCRIPT = SCRIPT_DIR / "normalized_sessions.py"
+OBSIDIAN_VIZ_SCRIPT = SCRIPT_DIR / "obsidian_viz.py"
 
 
 # =============================================================================
 # WORKFLOW STAGES
 # =============================================================================
+
+def stage_obsidian_viz(correlation_path: Path, days: int, vault_path: str = None) -> bool:
+    """Generate Obsidian Dashboard and Canvas.
+    
+    Args:
+        correlation_path: Path to correlation results JSON
+        days: Number of days in timeframe
+        vault_path: Optional path to Obsidian vault
+        
+    Returns:
+        True if visualization generated, False otherwise
+    """
+    print(f"\n{'='*60}")
+    print("STAGE 5: OBSIDIAN VISUALIZATION")
+    print(f"{'='*60}")
+    
+    cmd = [
+        "python3",
+        str(OBSIDIAN_VIZ_SCRIPT),
+        str(correlation_path),
+        "--days", str(days)
+    ]
+    
+    if vault_path:
+        cmd.extend(["--vault", vault_path])
+        
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.stdout:
+            for line in result.stdout.strip().split('\n'):
+                print(f"  {line}")
+        
+        if result.returncode != 0:
+            print(f"  ✗ Visualization failed: {result.stderr}")
+            return False
+            
+        return True
+    except Exception as e:
+        print(f"  ✗ Visualization error: {e}")
+        return False
+
 
 def stage_extract(days: int, platforms: list, output_path: Path) -> bool:
     """Extract sessions from all providers into normalized schema.
@@ -285,7 +328,8 @@ def run_workflow(days: int = DEFAULT_DAYS,
                  platforms: list = None,
                  github_repo: str = None,
                  search_query: str = None,
-                 model: str = "openai/gpt-4o-mini") -> dict:
+                 model: str = "openai/gpt-4o-mini",
+                 vault_path: str = None) -> dict:
     """Execute the complete recall workflow.
     
     Pipeline:
@@ -293,6 +337,7 @@ def run_workflow(days: int = DEFAULT_DAYS,
     2. Correlate with GitHub commits (if repo provided)
     3. Search for specific topics (if query provided)
     4. Generate single recommended action
+    5. Generate Obsidian Dashboard and Canvas
     
     Args:
         days: Number of days to analyze
@@ -300,6 +345,7 @@ def run_workflow(days: int = DEFAULT_DAYS,
         github_repo: GitHub repo in owner/name format
         search_query: Optional topic search query
         model: DSPy-compatible model identifier
+        vault_path: Optional path to Obsidian vault
         
     Returns:
         Dict with extracted_sessions, correlation, search_results, one_thing
@@ -357,6 +403,9 @@ def run_workflow(days: int = DEFAULT_DAYS,
     else:
         results['one_thing'] = stage_one_thing(results['correlation'])
     
+    # Stage 5: Visualization
+    stage_obsidian_viz(correlate_path, days, vault_path)
+    
     # Summary
     print(f"\n{'='*60}")
     print("WORKFLOW COMPLETE")
@@ -399,6 +448,8 @@ def main():
     parser.add_argument("--output", type=Path, default=None,
                         help=f"Output directory (default: {OUTPUT_DIR})")
     
+    parser.add_argument("--vault", help="Obsidian vault path")
+    
     args = parser.parse_args()
     
     platforms = args.platforms.split(",") if args.platforms else None
@@ -411,7 +462,8 @@ def main():
         platforms=platforms,
         github_repo=args.github_repo,
         search_query=args.search,
-        model=args.model
+        model=args.model,
+        vault_path=args.vault
     )
 
 

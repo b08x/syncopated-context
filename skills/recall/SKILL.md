@@ -11,7 +11,7 @@ metadata:
 
 # Multi-Platform Recall
 
-Comprehensive AI harness session recall across Claude Code, Gemini CLI, OpenCode, and Hermes with GitHub activity correlation and backup diff analysis. Every recall ends with the **One Thing** - a concrete, highest-leverage next action synthesized from cross-platform results.
+Comprehensive AI harness session recall across Claude Code, Gemini CLI, OpenCode, and Hermes, plus **Obsidian notes** and **Local Git activity** across your workspace. Every recall ends with the **One Thing** - a concrete, highest-leverage next action synthesized from cross-platform results.
 
 ## Architecture Overview
 
@@ -19,7 +19,7 @@ This skill uses a **normalized extraction layer** that unifies session data from
 
 - **Provider-agnostic queries**: Same analysis works across all platforms
 - **Schema consistency**: Unified field names, timestamp formats, usage metrics
-- **Cross-platform correlation**: Sessions from different tools can be compared
+- **Cross-platform correlation**: Sessions, notes, and commits from different tools can be compared
 - **DSPy-powered synthesis**: Structured LLM calls for narrative generation
 
 ```
@@ -32,7 +32,7 @@ This skill uses a **normalized extraction layer** that unifies session data from
                                  ▼
                     ┌───────────────────────┐
                     │  Normalization Layer  │
-                    │  (ParsedSession)      │
+                    │  (ParsedSession/Note) │
                     └───────────┬───────────┘
                                 ▼
                     ┌───────────────────────┐
@@ -41,15 +41,17 @@ This skill uses a **normalized extraction layer** that unifies session data from
                     └───────────┬───────────┘
                                 ▼
                     ┌───────────────────────┐
-                    │   GitHub + Restic      │
-                    │   Multi-Context        │
+                    │ GitHub + Local Git    │
+                    │ Restic + Obsidian     │
                     └───────────────────────┘
 ```
 
 ## What It Does
 
 - **Multi-platform session aggregation**: Extracts and correlates sessions from all major AI platforms
-- **Normalized schema**: All providers output identical `ParsedSession` structure
+- **Obsidian integration**: Pulls recent notes from `~/Notebook` for cognitive context
+- **Local Git integration**: Scans `~/Workspace` for activity across all repositories
+- **Normalized schema**: All providers output identical `ParsedSession` or `ParsedNote` structure
 - **GitHub integration**: Pulls commit history, PR activity for contextual insights
 - **Backup correlation**: Analyzes restic incremental diffs for file evolution
 - **Temporal correlation**: Aligns session timestamps with commits and file changes
@@ -64,6 +66,8 @@ This skill uses a **normalized extraction layer** that unifies session data from
 | AI Harness (Hermes) | `~/.hermes/state.db` | SQLite read-only | SQLite |
 | AI Harness (Gemini CLI) | `~/.gemini/tmp/<hash>/chats/*.json` | Direct file read | JSON |
 | AI Harness (OpenCode) | `~/.local/share/opencode/opencode.db` | SQLite read-only | SQLite |
+| Obsidian | `~/Notebook/*.md` | Recursive Markdown scan | Markdown |
+| Local Git | `~/Workspace/**/.git` | Recursive git log scan | Git |
 
 **Critical Path Fixes:**
 
@@ -80,6 +84,7 @@ STAGE 1: EXTRACTION     → Multi-provider normalized extraction
 STAGE 2: CORRELATION    → GitHub + restic integration, timeline build
 STAGE 3: SEARCH         → Optional topic search across combined data
 STAGE 4: ONE THING      → DSPy synthesis of highest-leverage action
+STAGE 5: VISUALIZATION  → Automated Obsidian Dashboard and Canvas generation
 ```
 
 ### Basic Usage
@@ -88,8 +93,8 @@ STAGE 4: ONE THING      → DSPy synthesis of highest-leverage action
 # Standard recall - last 7 days, all platforms
 python3 scripts/recall_workflow.py
 
-# Extended timeframe with GitHub integration
-python3 scripts/recall_workflow.py --days 14 --github-repo owner/repo
+# Extended timeframe with GitHub integration and custom vault
+python3 scripts/recall_workflow.py --days 14 --github-repo owner/repo --vault ~/MyVault
 
 # Topic search across platforms
 python3 scripts/recall_workflow.py --search "authentication work" --days 30
@@ -105,6 +110,12 @@ python3 scripts/recall_workflow.py --platforms claude,hermes --days 7
 ├── sessions_20260402_093000.json      # Extracted normalized sessions
 ├── correlation_20260402_093000.json   # Timeline + synthesis results
 └── search_results.json                 # (if --search used)
+
+~/Notebook/ (or specified vault)
+├── Dashboards/
+│   └── Recall Dashboard YYYY-MM-DD.md  # Synthesized narrative + timeline
+└── Canvases/
+    └── Recall Timeline YYYY-MM-DD.canvas # Interactive temporal view
 ```
 
 ## Normalized Session Schema

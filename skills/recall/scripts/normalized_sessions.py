@@ -98,6 +98,23 @@ class ParsedMessage:
 
 
 @dataclass
+class ParsedNote:
+    """Unified structure for notes (e.g., Obsidian)."""
+    id: str
+    title: str
+    path: str
+    content: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    tags: List[str] = None
+    source: str = "obsidian"
+
+    def __post_init__(self):
+        if self.tags is None:
+            self.tags = []
+
+
+@dataclass
 class ParsedSession:
     """Unified session schema matching TypeScript implementation."""
     id: str
@@ -1076,6 +1093,128 @@ class OpenCodeProvider:
         return calls
 
 
+class ObsidianProvider:
+    """Extract notes from an Obsidian notebook at ~/Notebook."""
+    
+    def __init__(self, notebook_path: str = "~/Notebook"):
+        self.notebook_path = Path(notebook_path).expanduser()
+    
+    def discover(self, days: int = 7) -> List[Path]:
+        """Discover markdown files modified in the last N days."""
+        if not self.notebook_path.exists():
+            return []
+        
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        notes = []
+        
+        for md_file in self.notebook_path.rglob("*.md"):
+            # Skip hidden directories like .obsidian
+            if any(part.startswith(".") for part in md_file.parts):
+                continue
+                
+            mtime = datetime.fromtimestamp(md_file.stat().st_mtime, tz=timezone.utc)
+            if mtime >= cutoff:
+                notes.append(md_file)
+        
+        return notes
+    
+    def parse(self, filepath: Path) -> Optional[ParsedNote]:
+        """Parse an Obsidian markdown file into a ParsedNote."""
+        try:
+            content = filepath.read_text()
+            
+            # Simple YAML frontmatter parsing
+            tags = []
+            title = filepath.stem
+            
+            frontmatter_match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+            if frontmatter_match:
+                frontmatter_text = frontmatter_match.group(1)
+                for line in frontmatter_text.split('\n'):
+                    if line.startswith('tags:'):
+                        # Simple tag extraction
+                        tag_str = line.replace('tags:', '').strip()
+                        tags = [t.strip().strip('[]"\'') for t in re.split(r'[,\s]+', tag_str) if t.strip()]
+                    elif line.startswith('title:'):
+                        title = line.replace('title:', '').strip().strip('"\'')
+            
+            # Extract tags from content (#tag)
+            content_tags = re.findall(r'#([\w/-]+)', content)
+            tags.extend(content_tags)
+            
+            # Times
+            mtime = datetime.fromtimestamp(filepath.stat().st_mtime, tz=timezone.utc)
+            ctime = datetime.fromtimestamp(filepath.stat().st_ctime, tz=timezone.utc)
+            
+            return ParsedNote(
+                id=str(filepath.relative_to(self.notebook_path)),
+                title=title,
+                path=str(filepath),
+                content=content,
+                created_at=ctime,
+                updated_at=mtime,
+                tags=list(set(tags)),
+                source="obsidian"
+            )
+        except Exception as e:
+            print(f"  [obsidian] Parse error {filepath}: {e}")
+            return None
+
+
+class LocalGitProvider:
+    """Extract git activity from all repositories in ~/Workspace."""
+    
+    def __init__(self, workspace_path: str = "~/Workspace"):
+        self.workspace_path = Path(workspace_path).expanduser()
+    
+    def discover(self) -> List[Path]:
+        """Discover all git repositories in the workspace."""
+        if not self.workspace_path.exists():
+            return []
+            
+        repos = []
+        # Look for .git directories up to 2 levels deep
+        for entry in self.workspace_path.iterdir():
+            if entry.is_dir():
+                if (entry / ".git").exists():
+                    repos.append(entry)
+                else:
+                    # Check one level deeper
+                    try:
+                        for subentry in entry.iterdir():
+                            if subentry.is_dir() and (subentry / ".git").exists():
+                                repos.append(subentry)
+                    except PermissionError:
+                        continue
+        return repos
+    
+    def extract_commits(self, repo_path: Path, days: int = 7) -> List[Dict]:
+        """Extract commits from a specific repository."""
+        since = (datetime.now(timezone.utc) - timedelta(days=days)).strftime('%Y-%m-%d %H:%M:%S')
+        
+        cmd = [
+            "git", "-C", str(repo_path), "log", 
+            f"--since={since}", 
+            "--pretty=format:{\"sha\":\"%h\",\"message\":\"%s\",\"date\":\"%ad\",\"author\":\"%an\"}", 
+            "--date=iso"
+        ]
+        
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            commits = []
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    try:
+                        commit = json.loads(line)
+                        commit['repo'] = repo_path.name
+                        commits.append(commit)
+                    except json.JSONDecodeError:
+                        continue
+            return commits
+        except subprocess.CalledProcessError:
+            return []
+
+
 # =============================================================================
 # MULTI-SOURCE CORRELATION
 # =============================================================================
@@ -1083,23 +1222,36 @@ class OpenCodeProvider:
 class MultiSourceCorrelator:
     """Correlate sessions with git commits, restic backups, and notebook changes."""
     
-    def __init__(self):
+    def __init__(self, notebook_path: str = "~/Notebook", workspace_path: str = "~/Workspace"):
         self.providers = {
             "gemini": GeminiProvider(),
             "hermes": HermesProvider(),
             "claude": ClaudeCodeProvider(),
             "opencode": OpenCodeProvider()
         }
+        self.obsidian = ObsidianProvider(notebook_path)
+        self.local_git = LocalGitProvider(workspace_path)
     
     def extract_all(self, days: int = 7, 
-                    platforms: Optional[List[str]] = None) -> Dict[str, List[ParsedSession]]:
-        """Extract sessions from all platforms."""
+                    platforms: Optional[List[str]] = None) -> Dict[str, List[Any]]:
+        """Extract sessions and notes from all platforms."""
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         
         results = {}
-        platforms = platforms or list(self.providers.keys())
+        platforms = platforms or list(self.providers.keys()) + ["obsidian"]
         
         for platform in platforms:
+            if platform == "obsidian":
+                files = self.obsidian.discover(days)
+                notes = []
+                for filepath in files:
+                    note = self.obsidian.parse(filepath)
+                    if note:
+                        notes.append(note)
+                results["obsidian"] = notes
+                print(f"  [obsidian] Extracted {len(notes)} notes")
+                continue
+
             if platform not in self.providers:
                 continue
             
@@ -1117,6 +1269,17 @@ class MultiSourceCorrelator:
         
         return results
     
+    def fetch_local_git_data(self, days: int = 7) -> List[Dict]:
+        """Fetch commits from all repositories in the workspace."""
+        repos = self.local_git.discover()
+        all_commits = []
+        for repo in repos:
+            commits = self.local_git.extract_commits(repo, days)
+            all_commits.extend(commits)
+        
+        print(f"  [git] Extracted {len(all_commits)} commits from {len(repos)} repos")
+        return all_commits
+
     def fetch_github_data(self, repo: str, days: int = 7) -> Dict:
         """Fetch GitHub commits and PRs."""
         since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
@@ -1148,21 +1311,31 @@ class MultiSourceCorrelator:
         
         return {"commits": commits, "pull_requests": []}
     
-    def build_timeline(self, sessions: Dict[str, List[ParsedSession]],
-                       github_data: Optional[Dict] = None) -> List[Dict]:
+    def build_timeline(self, sessions: Dict[str, List[Any]],
+                       github_data: Optional[Dict] = None,
+                       local_commits: Optional[List[Dict]] = None) -> List[Dict]:
         """Build unified timeline from all sources."""
         timeline = []
         
-        # Add all sessions
-        for platform, platform_sessions in sessions.items():
-            for session in platform_sessions:
-                timeline.append({
-                    "type": "session",
-                    "platform": platform,
-                    "timestamp": session.started_at,
-                    "data": asdict(session),
-                    "summary": session.generated_title or f"{platform} session"
-                })
+        # Add all sessions and notes
+        for platform, items in sessions.items():
+            for item in items:
+                if platform == "obsidian":
+                    timeline.append({
+                        "type": "note",
+                        "platform": "obsidian",
+                        "timestamp": item.updated_at,
+                        "data": asdict(item),
+                        "summary": f"Note: {item.title}"
+                    })
+                else:
+                    timeline.append({
+                        "type": "session",
+                        "platform": platform,
+                        "timestamp": item.started_at,
+                        "data": asdict(item),
+                        "summary": item.generated_title or f"{platform} session"
+                    })
         
         # Add GitHub commits
         if github_data:
@@ -1177,7 +1350,26 @@ class MultiSourceCorrelator:
                     "platform": "github",
                     "timestamp": ts,
                     "data": commit,
-                    "summary": commit.get("message", "").split("\n")[0][:60]
+                    "summary": f"GitHub Commit: {commit.get('message', '').split('\n')[0][:60]}"
+                })
+        
+        # Add Local Git commits
+        if local_commits:
+            for commit in local_commits:
+                try:
+                    # git log date is usually iso format
+                    ts = datetime.fromisoformat(commit["date"])
+                    if ts.tzinfo is None:
+                        ts = ts.replace(tzinfo=timezone.utc)
+                except (KeyError, ValueError):
+                    ts = datetime.now(timezone.utc)
+                
+                timeline.append({
+                    "type": "commit",
+                    "platform": f"git:{commit.get('repo', 'local')}",
+                    "timestamp": ts,
+                    "data": commit,
+                    "summary": f"Local Commit: {commit.get('message', '').split('\n')[0][:60]}"
                 })
         
         # Sort by timestamp
@@ -1278,11 +1470,12 @@ class MultiSourceCorrelator:
         sessions = [
             {
                 "platform": t["platform"],
-                "summary": t.get("summary", "Untitled session"),
+                "type": t["type"],
+                "summary": t.get("summary", "Untitled"),
                 "timestamp": t.get("timestamp", "").isoformat() if hasattr(t.get("timestamp"), "isoformat") else str(t.get("timestamp", ""))
             }
-            for t in timeline if t["type"] == "session"
-        ][:10]
+            for t in timeline if t["type"] in ["session", "note"]
+        ][:15]
         
         commits = [
             {
@@ -1393,28 +1586,27 @@ def main():
         
         return data
     
-    def serialize_session(session):
-        """Convert session to JSON-serializable dict."""
-        data = asdict(session)
+    def serialize_item(item):
+        """Convert session or note to JSON-serializable dict."""
+        data = asdict(item)
         # Handle datetime fields
-        for field in ['started_at', 'ended_at']:
+        for field in ['started_at', 'ended_at', 'created_at', 'updated_at']:
             if data.get(field) and hasattr(data[field], 'isoformat'):
                 data[field] = data[field].isoformat()
-        # Handle nested usage (already a dict after asdict)
-        if data.get('usage') and hasattr(data['usage'], '__dataclass_fields__'):
-            data['usage'] = asdict(data['usage'])
-        # Handle nested messages
-        data['messages'] = [serialize_message(m) for m in (data.get('messages') or [])]
+        
+        if 'messages' in data:
+            data['messages'] = [serialize_message(m) for m in (data.get('messages') or [])]
+        
         return data
     
     if args.command == "extract":
         platforms = args.platforms.split(",") if args.platforms else None
-        sessions = correlator.extract_all(args.days, platforms)
+        results = correlator.extract_all(args.days, platforms)
         
         # Convert to serializable format
         output = {}
-        for platform, platform_sessions in sessions.items():
-            output[platform] = [serialize_session(s) for s in platform_sessions]
+        for platform, items in results.items():
+            output[platform] = [serialize_item(s) for s in items]
         
         if args.output:
             with open(args.output, "w") as f:
@@ -1431,8 +1623,11 @@ def main():
             print(f"\n Fetching GitHub data for {args.github_repo}...")
             github_data = correlator.fetch_github_data(args.github_repo, args.days)
             print(f"   Found {len(github_data['commits'])} commits")
+            
+        print(f"\n Fetching local git data...")
+        local_commits = correlator.fetch_local_git_data(args.days)
         
-        timeline = correlator.build_timeline(sessions, github_data)
+        timeline = correlator.build_timeline(sessions, github_data, local_commits)
         
         print(f"\n correlating {len(timeline)} events...")
         result = correlator.correlate_with_dspy(timeline, model=args.model)

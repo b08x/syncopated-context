@@ -35,20 +35,26 @@ class MultiPlatformExtractor:
     TOPIC_SEARCH_THRESHOLD = 3     # Below this many words, treat as topic
 
     def __init__(self):
-        self.platforms = ['claude', 'hermes', 'gemini', 'opencode']
+        self.platforms = ['claude', 'hermes', 'gemini', 'opencode', 'obsidian', 'workspace']
         # Use CWD instead of home to avoid sandbox /tmp trap
         self.default_index_dir = Path.cwd() / '.recall-index'
 
     def extract_sessions(self, platforms: List[str], date_range: Dict,
                         topic: Optional[str] = None) -> Dict[str, List[Dict]]:
-        """Extract sessions from specified platforms."""
+        """Extract sessions and notes from specified platforms."""
         results = {}
 
         for platform in platforms:
             try:
-                sessions = self._extract_platform_sessions(platform, date_range, topic)
-                results[platform] = sessions
-                print(f"✓ {platform}: {len(sessions)} sessions")
+                if platform == 'workspace':
+                    # Special case for local workspace git activity
+                    commits = self._extract_workspace_commits(date_range)
+                    results['workspace'] = commits
+                    print(f"✓ {platform}: {len(commits)} commits")
+                else:
+                    sessions = self._extract_platform_sessions(platform, date_range, topic)
+                    results[platform] = sessions
+                    print(f"✓ {platform}: {len(sessions)} sessions/notes")
             except Exception as e:
                 print(f"✗ {platform}: {str(e)}")
                 results[platform] = []
@@ -62,7 +68,8 @@ class MultiPlatformExtractor:
             'claude': self._extract_claude_sessions,
             'hermes': self._extract_hermes_sessions,
             'gemini': self._extract_gemini_sessions,
-            'opencode': self._extract_opencode_sessions
+            'opencode': self._extract_opencode_sessions,
+            'obsidian': self._extract_obsidian_notes
         }
 
         if platform not in extractors:
@@ -74,6 +81,81 @@ class MultiPlatformExtractor:
             sessions = self._filter_by_topic(sessions, topic)
 
         return sessions
+
+    def _extract_obsidian_notes(self, date_range: Dict) -> List[Dict]:
+        """Extract notes from Obsidian notebook."""
+        notebook_path = Path("~/Notebook").expanduser()
+        if not notebook_path.exists():
+            return []
+            
+        notes = []
+        for md_file in notebook_path.rglob("*.md"):
+            if any(part.startswith(".") for part in md_file.parts):
+                continue
+                
+            mtime = datetime.fromtimestamp(md_file.stat().st_mtime, tz=timezone.utc)
+            if date_range['start'] <= mtime <= date_range['end']:
+                try:
+                    content = md_file.read_text()
+                    notes.append({
+                        'platform': 'obsidian',
+                        'session_id': str(md_file.relative_to(notebook_path)),
+                        'title': md_file.stem,
+                        'content': content,
+                        'timestamp': mtime.isoformat(),
+                        'file_path': str(md_file)
+                    })
+                except Exception:
+                    continue
+        return notes
+
+    def _extract_workspace_commits(self, date_range: Dict) -> List[Dict]:
+        """Extract git commits from all repositories in ~/Workspace."""
+        workspace_path = Path("~/Workspace").expanduser()
+        if not workspace_path.exists():
+            return []
+            
+        since = date_range['start'].strftime('%Y-%m-%d %H:%M:%S')
+        all_commits = []
+        
+        # Look for .git directories up to 2 levels deep
+        repos = []
+        for entry in workspace_path.iterdir():
+            if entry.is_dir():
+                if (entry / ".git").exists():
+                    repos.append(entry)
+                else:
+                    try:
+                        for subentry in entry.iterdir():
+                            if subentry.is_dir() and (subentry / ".git").exists():
+                                repos.append(subentry)
+                    except PermissionError:
+                        continue
+        
+        for repo_path in repos:
+            cmd = [
+                "git", "-C", str(repo_path), "log", 
+                f"--since={since}", 
+                "--pretty=format:{\"sha\":\"%h\",\"message\":\"%s\",\"date\":\"%ad\",\"author\":\"%an\"}", 
+                "--date=iso"
+            ]
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                if result.returncode == 0:
+                    for line in result.stdout.strip().split('\n'):
+                        if line:
+                            try:
+                                commit = json.loads(line)
+                                commit['platform'] = 'git'
+                                commit['repo'] = repo_path.name
+                                commit['session_id'] = f"git-{repo_path.name}-{commit['sha']}"
+                                commit['timestamp'] = commit['date']
+                                all_commits.append(commit)
+                            except json.JSONDecodeError:
+                                continue
+            except Exception:
+                continue
+        return all_commits
 
     def _extract_claude_sessions(self, date_range: Dict) -> List[Dict]:
         """Extract Claude Code sessions using existing script."""
@@ -613,7 +695,10 @@ class MultiPlatformExtractor:
         return None
 
     def _get_session_content(self, session: Dict) -> str:
-        """Extract text content from session."""
+        """Extract text content from session or note."""
+        if 'content' in session and isinstance(session['content'], str):
+            return session['content']
+            
         content = []
         messages = session.get('messages', [])
 
@@ -663,14 +748,17 @@ class MultiPlatformExtractor:
                     "",
                 ]
                 
-                # Add messages
-                messages = session.get('messages', [])
-                for msg in messages:
-                    role = msg.get('role', 'unknown') if isinstance(msg, dict) else 'unknown'
-                    msg_content = msg.get('content', msg) if isinstance(msg, dict) else str(msg)
-                    lines.append(f"[{role.upper()}]")
-                    lines.append(msg_content)
-                    lines.append("")
+                # Add content or messages
+                if 'content' in session:
+                    lines.append(session['content'])
+                else:
+                    messages = session.get('messages', [])
+                    for msg in messages:
+                        role = msg.get('role', 'unknown') if isinstance(msg, dict) else 'unknown'
+                        msg_content = msg.get('content', msg) if isinstance(msg, dict) else str(msg)
+                        lines.append(f"[{role.upper()}]")
+                        lines.append(msg_content)
+                        lines.append("")
                 
                 filepath.write_text('\n'.join(lines))
                 total_written += 1
