@@ -9,8 +9,12 @@ gem "dry-struct"
 gem "dry-types"
 gem "journald-logger"
 gem "lipgloss"
+gem "pg"
+gem "pgvector"
+gem "pragmatic_segmenter"
 gem "rake"
 gem "refinements"
+gem "ruby_llm"
 gem "sequel"
 gem "sqlite3"
 gem "yajl-ruby"
@@ -22,6 +26,8 @@ group :quality do
 end
 
 group :development, :test do
+  gem "dotenv"
+  gem "pry-byebug"
   gem "rdoc"
   gem "rspec", "~> 3.10"
   gem "rubocop"

@@ -47,7 +47,7 @@ addressed with tui."
 | **neuro-symbolic** | `ruby-spacy` + `ruby_llm-schema` + `sequel` + `pgvector` | SFL annotation pipeline: symbolic parse → LLM schema-constrained annotation → clause-level storage |
 | **transport** | `fast-mcp`, `async`, `circuit_breaker` | MCP servers, async concurrency, resilience |
 
-**Neuro-symbolic plane**: The combination of symbolic NLP (`ruby-spacy` dependency parse → `ruby-wordnet` process classification) with neural annotation (`ruby_llm` + `ruby_llm-schema` `IdeationalSchema`) and neural retrieval (`informers` embeddings + `pgvector` RRF). Always delegate schema/storage concerns to `agentic-data-engineer`. Handle only the LLM annotation and agent orchestration layers here.
+**Neuro-symbolic plane**: The combination of symbolic NLP (`ruby-spacy` dependency parse → `ruby-wordnet` process classification) with neural annotation (`ruby_llm` + `ruby_llm-schema` `IdeationalSchema`) and neural retrieval (`informers` embeddings + `pgvector` RRF). Always delegate schema/storage concerns to `rubysmithing-builder`. Handle only the LLM annotation and agent orchestration layers here.
 
 **ruby_llm-schema SFL annotation pattern** (neuro-symbolic core):
 ```ruby
@@ -68,7 +68,7 @@ end
 ```
 
 **Compound prompts involving schema/storage**: Split the request. State explicitly:
-"Handling the LLM annotation/agent component. The schema/pipeline component should be addressed with `agentic-data-engineer`."
+"Handling the LLM annotation/agent component. The schema/pipeline component should be addressed with `rubysmithing-builder`."
 
 ## Patterns Reference
 

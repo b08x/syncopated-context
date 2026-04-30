@@ -366,7 +366,20 @@ PARTICIPANT_ROLES = {
 
 ---
 
-## Step 6: Key Pipeline Patterns
+## Step 4: Connection Verification (Mandatory)
+
+Before providing implementation code or running migrations, verify the database environment:
+
+1. **PostgreSQL**: `sequel -c "SELECT 1" postgres://user:pass@localhost/db`
+2. **SQLite**: `ls -l db/development.sqlite3` or `sequel sqlite://db/development.sqlite3 -c "SELECT 1"`
+3. **Redis (Ohm)**: `redis-cli ping`
+
+Report the verification result in the **Sovereign Decision Statement**. If verification fails, troubleshoot the environment before proceeding with implementation.
+
+---
+
+## Step 5: Key Pipeline Patterns
+
 
 ### Linguistically-Motivated Chunking (rank scale: Paragraph → Sentence → Clause)
 

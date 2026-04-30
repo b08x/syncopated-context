@@ -6,7 +6,7 @@ allowed-tools: ["Read", "Grep", "Glob", "Write", "Bash", "Agent"]
 
 ## Step 1 — Tree of Thoughts Exploration
 
-Dispatch the `agentic-operations-lead` agent with:
+Dispatch the `rubysmithing-sovereign` agent with:
 
 - Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/vibe/step-1-tot-explore.md`
 - App concept: from arguments
@@ -15,14 +15,14 @@ Wait for the complete Project Charter before proceeding.
 
 ## Step 2 — User Stories
 
-Dispatch the `agentic-software-engineer` with:
+Dispatch the `rubysmithing-builder` with:
 
 - Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/vibe/step-2-user-stories.md`
 - Project Charter: from Step 1
 
 ## Step 3 — Backlog
 
-Dispatch the `agentic-software-engineer` with:
+Dispatch the `rubysmithing-builder` with:
 
 - Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/vibe/step-3-backlog.md`
 - User Stories: from Step 2
@@ -30,7 +30,7 @@ Dispatch the `agentic-software-engineer` with:
 
 ## Step 4 — Scaffold
 
-Dispatch the `platform-engineer` with:
+Dispatch the `rubysmithing-builder` with:
 
 - Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/vibe/step-4-scaffold.md`
 - Project Charter: from Step 1
@@ -39,7 +39,7 @@ Dispatch the `platform-engineer` with:
 
 **Only run this step if** the Project Charter's `Ruby gem dependencies` field lists any of: `sequel`, `pgvector`, `ohm`, `ruby-spacy`, `informers`, `ruby_llm`, `ruby-wordnet`, `pragmatic_segmenter`.
 
-If the condition is met, dispatch `agentic-data-engineer` with:
+If the condition is met, dispatch `rubysmithing-builder` with:
 
 - Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/vibe/step-4b-data-schema.md`
 - Project Charter: from Step 1
@@ -51,7 +51,7 @@ If the condition is not met, skip directly to Step 5.
 
 ## Step 5 — First Task
 
-Dispatch the `agentic-software-engineer` with:
+Dispatch the `rubysmithing-builder` with:
 
 - Task instructions: `$CLAUDE_PLUGIN_ROOT/tasks/vibe/step-5-implement.md`
 - Scaffolded project: from Step 4

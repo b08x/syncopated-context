@@ -4,6 +4,7 @@ GEM
     amazing_print (2.0.0)
     ast (2.4.3)
     backport (1.2.0)
+    base64 (0.3.0)
     benchmark (0.5.0)
     bigdecimal (4.1.0)
     bubbletea (0.1.4-aarch64-linux-gnu)
@@ -22,6 +23,9 @@ GEM
       lipgloss (~> 0.1)
     bubbletea (0.1.4-x86_64-linux-musl)
       lipgloss (~> 0.1)
+    byebug (13.0.0)
+      reline (>= 0.6.0)
+    coderay (1.1.3)
     cogger (1.7.0)
       core (~> 2.0)
       logger (~> 1.7)
@@ -38,6 +42,7 @@ GEM
       reline (>= 0.3.8)
     diff-lcs (1.6.2)
     docile (1.4.1)
+    dotenv (3.2.0)
     dry-configurable (1.3.0)
       dry-core (~> 1.1)
       zeitwerk (~> 2.6)
@@ -85,6 +90,17 @@ GEM
       refinements (~> 13.6)
       versionaire (~> 14.0)
       zeitwerk (~> 2.7)
+    event_stream_parser (1.0.0)
+    faraday (2.14.1)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-multipart (1.2.0)
+      multipart-post (~> 2.0)
+    faraday-net_http (3.4.2)
+      net-http (~> 0.5)
+    faraday-retry (2.4.0)
+      faraday (~> 2.0)
     git-lint (9.7.0)
       cogger (~> 1.0)
       containable (~> 1.1)
@@ -137,6 +153,11 @@ GEM
     marameters (4.6.0)
       refinements (~> 13.6)
       zeitwerk (~> 2.7)
+    marcel (1.1.0)
+    method_source (1.1.0)
+    multipart-post (2.4.1)
+    net-http (0.9.1)
+      uri (>= 0.11.1)
     nokogiri (1.19.2-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.19.2-aarch64-linux-musl)
@@ -161,10 +182,20 @@ GEM
     parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
+    pg (1.5.9)
+    pgvector (0.3.3)
     pp (0.6.3)
       prettyprint
+    pragmatic_segmenter (0.3.24)
     prettyprint (0.2.0)
     prism (1.9.0)
+    pry (0.16.0)
+      coderay (~> 1.1)
+      method_source (~> 1.0)
+      reline (>= 0.6.0)
+    pry-byebug (3.12.0)
+      byebug (~> 13.0)
+      pry (>= 0.13, < 0.17)
     psych (5.3.1)
       date
       stringio
@@ -246,6 +277,17 @@ GEM
       prism (>= 1.2, < 2.0)
       rbs (>= 3, < 5)
     ruby-progressbar (1.13.0)
+    ruby_llm (1.14.1)
+      base64
+      event_stream_parser (~> 1)
+      faraday (>= 1.10.0)
+      faraday-multipart (>= 1)
+      faraday-net_http (>= 1)
+      faraday-retry (>= 1)
+      marcel (~> 1)
+      ruby_llm-schema (~> 0)
+      zeitwerk (~> 2)
+    ruby_llm-schema (0.3.0)
     runcom (12.5.0)
       refinements (~> 13.6)
       xdg (~> 9.5)
@@ -313,6 +355,7 @@ GEM
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
+    uri (1.1.1)
     versionaire (14.5.0)
       refinements (~> 13.6)
     xdg (9.5.0)
@@ -338,11 +381,16 @@ DEPENDENCIES
   amazing_print
   bubbletea
   debug
+  dotenv
   dry-struct
   dry-types
   git-lint
   journald-logger
   lipgloss
+  pg
+  pgvector
+  pragmatic_segmenter
+  pry-byebug
   rake
   rdoc
   refinements
@@ -358,6 +406,7 @@ DEPENDENCIES
   rubocop-shopify
   rubocop-thread_safety
   ruby-lsp
+  ruby_llm
   sequel
   simplecov
   solargraph
@@ -370,6 +419,7 @@ CHECKSUMS
   amazing_print (2.0.0) sha256=2e36aba46ac78d37ed27ca0e2056afe3583183bb5c64f157c246b267355e5d6a
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
   backport (1.2.0) sha256=912c7dfdd9ee4625d013ddfccb6205c3f92da69a8990f65c440e40f5b2fc7f75
+  base64 (0.3.0)
   benchmark (0.5.0) sha256=465df122341aedcb81a2a24b4d3bd19b6c67c1530713fd533f3ff034e419236c
   bigdecimal (4.1.0) sha256=6dc07767aa3dc456ccd48e7ae70a07b474e9afd7c5bc576f80bd6da5c8dd6cae
   bubbletea (0.1.4-aarch64-linux-gnu) sha256=9a1200916572dd5518da5d6a66bb136274fa577ecaa67c59dbecd34b872b48fc
@@ -380,6 +430,8 @@ CHECKSUMS
   bubbletea (0.1.4-x86_64-darwin) sha256=8b73c14e4a9a8cb14735edf18c71bf568dee2b4340b0f8f572480665cff3d817
   bubbletea (0.1.4-x86_64-linux-gnu) sha256=c1a06df5828c3af8ed664bf08591eba4bcb16aa44c58f8d21f7e2a01c2dea885
   bubbletea (0.1.4-x86_64-linux-musl) sha256=b8972ffc21590b83442c1b88d83539c412dea964866560ab1dd263c531fac989
+  byebug (13.0.0)
+  coderay (1.1.3)
   cogger (1.7.0) sha256=cd29f8b3527fcfc896936bff1a1fa93bc2811ea68c587661bc3d1662ba606ebc
   concurrent-ruby (1.3.6) sha256=6b56837e1e7e5292f9864f34b69c5a2cbc75c0cf5338f1ce9903d10fa762d5ab
   containable (1.5.0) sha256=cd7a308f636c2f479d65105cb7ceffc7a5a426ecb23a97a66a5f84e6d683229e
@@ -388,6 +440,7 @@ CHECKSUMS
   debug (1.11.1) sha256=2e0b0ac6119f2207a6f8ac7d4a73ca8eb4e440f64da0a3136c30343146e952b6
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
   docile (1.4.1) sha256=96159be799bfa73cdb721b840e9802126e4e03dfc26863db73647204c727f21e
+  dotenv (3.2.0)
   dry-configurable (1.3.0) sha256=882d862858567fc1210d2549d4c090f34370fc1bb7c5c1933de3fe792e18afa8
   dry-core (1.2.0) sha256=0cc5a7da88df397f153947eeeae42e876e999c1e30900f3c536fb173854e96a1
   dry-inflector (1.3.1) sha256=7fb0c2bb04f67638f25c52e7ba39ab435d922a3a5c3cd196120f63accb682dcc
@@ -399,6 +452,11 @@ CHECKSUMS
   dry-types (1.9.1) sha256=baebeecdb9f8395d6c9d227b62011279440943e3ef2468fe8ccc1ba11467f178
   erb (6.0.2) sha256=9fe6264d44f79422c87490a1558479bd0e7dad4dd0e317656e67ea3077b5242b
   etcher (3.5.0) sha256=20359b9092470809b65d12a50e756effae7f82cac98d312dd7097ec93f33d5c5
+  event_stream_parser (1.0.0)
+  faraday (2.14.1)
+  faraday-multipart (1.2.0)
+  faraday-net_http (3.4.2)
+  faraday-retry (2.4.0)
   git-lint (9.7.0) sha256=9074262104618f45a14f5fece20d7f5e6918c7a3b2b2ee0447630184ec07653e
   gitt (4.6.0) sha256=bb7c5f152f51b487b362aa2e6ea28952e05f5d903339bc3e890c9f2b0b353fa6
   ice_nine (0.11.2) sha256=5d506a7d2723d5592dc121b9928e4931742730131f22a1a37649df1c1e2e63db
@@ -423,6 +481,10 @@ CHECKSUMS
   lipgloss (0.2.2-x86_64-linux-musl) sha256=a05ebd4d16a441bbe657fafb269d0f9e6d89a1124b3288264efedc427b007703
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   marameters (4.6.0) sha256=a8ec3bbd11342e70fedc75a402cd782070457d157747942c7682c02bff9ae589
+  marcel (1.1.0)
+  method_source (1.1.0)
+  multipart-post (2.4.1)
+  net-http (0.9.1)
   nokogiri (1.19.2-aarch64-linux-gnu) sha256=c34d5c8208025587554608e98fd88ab125b29c80f9352b821964e9a5d5cfbd19
   nokogiri (1.19.2-aarch64-linux-musl) sha256=7f6b4b0202d507326841a4f790294bf75098aef50c7173443812e3ac5cb06515
   nokogiri (1.19.2-arm-linux-gnu) sha256=b7fa1139016f3dc850bda1260988f0d749934a939d04ef2da13bec060d7d5081
@@ -437,9 +499,14 @@ CHECKSUMS
   ostruct (0.6.3) sha256=95a2ed4a4bd1d190784e666b47b2d3f078e4a9efda2fccf18f84ddc6538ed912
   parallel (1.27.0) sha256=4ac151e1806b755fb4e2dc2332cbf0e54f2e24ba821ff2d3dcf86bf6dc4ae130
   parser (3.3.11.1) sha256=d17ace7aabe3e72c3cc94043714be27cc6f852f104d81aa284c2281aecc65d54
+  pg (1.5.9)
+  pgvector (0.3.3)
   pp (0.6.3) sha256=2951d514450b93ccfeb1df7d021cae0da16e0a7f95ee1e2273719669d0ab9df6
+  pragmatic_segmenter (0.3.24)
   prettyprint (0.2.0) sha256=2bc9e15581a94742064a3cc8b0fb9d45aae3d03a1baa6ef80922627a0766f193
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
+  pry (0.16.0)
+  pry-byebug (3.12.0)
   psych (5.3.1) sha256=eb7a57cef10c9d70173ff74e739d843ac3b2c019a003de48447b2963d81b1974
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
   rainbow (3.1.1) sha256=039491aa3a89f42efa1d6dec2fc4e62ede96eb6acd95e52f1ad581182b79bc6a
@@ -469,6 +536,8 @@ CHECKSUMS
   rubocop-thread_safety (0.7.3) sha256=067cdd52fbf5deffc18995437e45b5194236eaff4f71de3375a1f6052e48f431
   ruby-lsp (0.26.9) sha256=33a01c001c00a76b4e821efc04ed7572983430f31ca5d6f3e343d0b6ccab4129
   ruby-progressbar (1.13.0) sha256=80fc9c47a9b640d6834e0dc7b3c94c9df37f08cb072b7761e4a71e22cff29b33
+  ruby_llm (1.14.1)
+  ruby_llm-schema (0.3.0)
   runcom (12.5.0) sha256=6e54ce19685639f862249aeef2e4f5cd0431008fe94e1ed0f6b53d2d1aa3125f
   sequel (5.102.0) sha256=c25bb85a44ae59b3ed41ca7c32c33316cf81a6fcaeabedb4036ba141dde70919
   simplecov (0.22.0) sha256=fe2622c7834ff23b98066bb0a854284b2729a569ac659f82621fc22ef36213a5
@@ -492,6 +561,7 @@ CHECKSUMS
   tsort (0.2.0) sha256=9650a793f6859a43b6641671278f79cfead60ac714148aabe4e3f0060480089f
   unicode-display_width (3.2.0) sha256=0cdd96b5681a5949cdbc2c55e7b420facae74c4aaf9a9815eee1087cb1853c42
   unicode-emoji (4.2.0) sha256=519e69150f75652e40bf736106cfbc8f0f73aa3fb6a65afe62fefa7f80b0f80f
+  uri (1.1.1)
   versionaire (14.5.0) sha256=f4a55d85fe858508fbf379fcddb764d00136ef0aa8a82464e2b431dc612ebd76
   xdg (9.5.0) sha256=e47886d0aef0273d0ba018452cc0499f44e1c4cbf424eb03be493d576878b35d
   yajl-ruby (1.4.3) sha256=8c974d9c11ae07b0a3b6d26efea8407269b02e4138118fbe3ef0d2ec9724d1d2

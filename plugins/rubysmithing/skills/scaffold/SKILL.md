@@ -34,13 +34,19 @@ See `references/scaffold-patterns.md` Section 4 for the full decision tree and s
 
 ---
 
-## Step 2: Gather Requirements
+## Step 2: Gather Requirements & Clarify
 
 Collect: **project name** (must be snake_case) and **feature flags**.
 
 Rather than asking about each flag individually, match the project to an archetype from
-`references/scaffold-patterns.md` Section 3 and propose the preset. Ask the user to
-confirm or adjust.
+`references/scaffold-patterns.md` Section 3 and propose the preset.
+
+**MANDATORY**: Ask at least one clarifying question before proceeding. Examples:
+- "Do you have a preference for GitHub Actions vs. CircleCI for this project?"
+- "Should I include Docker/Compose configurations for local development?"
+- "Would you like to enforce strict Zeitwerk compliance from the start?"
+
+Ask the user to confirm or adjust the archetype preset and answer the clarification.
 
 **rubysmith defaults** (for most projects): `--git --rake --console --rspec --readme`
 Ask specifically about: Docker, GitHub CI, license, citation.

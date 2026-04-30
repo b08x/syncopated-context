@@ -1,0 +1,8 @@
+.rubocop.yml
+.tool-versions
+.ruby-version
+README.md
+Gemfile.lock
+Gemfile
+Rakefile
+.claude-plugin/
