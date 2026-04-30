@@ -1,0 +1,46 @@
+---
+name: git-commit
+description: "Analyzes Git changes, stages modified files, and generates a conventional commit message, then commits."
+---
+
+<task>Generate a conventional commit message based on the provided state delta.</task>
+
+!{
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "<error>Not a git repository.</error>"
+    exit 1
+fi
+
+if ! git diff --cached --quiet || ! git diff --quiet; then
+    echo "<state_delta>"
+    
+    echo -n "Changes since last commit: ["
+    # Combine staged and unstaged numstats logically
+    git diff --cached --numstat > /tmp/git_stats_$$ 2>/dev/null
+    if [ -s /tmp/git_stats_$$ ]; then
+        awk '{printf "%s (+%s/-%s), ", $3, $1, $2}' /tmp/git_stats_$$ | sed 's/, $//'
+    else
+        git diff --numstat | awk '{printf "%s (+%s/-%s), ", $3, $1, $2}' | sed 's/, $//'
+    fi
+    rm -f /tmp/git_stats_$$
+    echo "]."
+
+    echo "Prior commit: $(git log -1 --format="%h %s" 2>/dev/null || echo 'None')"
+    
+    echo "<detailed_diff_stat>"
+    git diff --cached --stat
+    git diff --stat
+    echo "</detailed_diff_stat>"
+    echo "</state_delta>"
+else
+    echo "<error>No changes to commit.</error>"
+    exit 0
+fi
+}
+
+<rules>
+Commit staged changes only
+Use emojois
+Enforce conventional commit syntax: type(scope?): subject
+Ban conversational padding, marketing language, politeness, and markdown wrappers.
+</rules>

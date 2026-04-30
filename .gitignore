@@ -8,3 +8,8 @@ node-compile-cache/
 **/graphify-out/*
 
 .ck/
+
+repomix.config.json
+**/repomix-outputs/*
+**/logs/*
+.repomixignore

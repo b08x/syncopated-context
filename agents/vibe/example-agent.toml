@@ -1,0 +1,215 @@
+# ============================================================================  
+# MISTRAL VIBE — CUSTOM AGENT TEMPLATE  
+# ============================================================================  
+# Place this file in one of:  
+#   ~/.vibe/agents/<name>.toml        (user-level, always available)  
+#   .vibe/agents/<name>.toml          (project-level, requires trusted folder)  
+#   <dir>/<name>.toml                 (custom path via agent_paths in config.toml)  
+#  
+# The filename (without .toml) becomes the agent name.  
+# This file: "my-agent.toml" → agent name: "my-agent"  
+# Launch with:  vibe --agent my-agent  
+# ============================================================================  
+  
+  
+# --------------------------------------------------------------------------  
+# REQUIRED FIELDS  
+# --------------------------------------------------------------------------  
+  
+# Human-readable name shown in the UI (Shift+Tab switcher, ACP modes).  
+# If omitted, defaults to the filename with hyphens replaced by spaces, title-cased.  
+display_name = "My Custom Agent"  
+  
+# Short description shown in mode picker and subagent listings.  
+description = "A custom agent that does X with restricted tool access"  
+  
+# Safety level — controls how the agent is perceived in the UI.  
+# Values: "safe" | "neutral" | "destructive" | "yolo"  
+#   safe        — read-only, no file mutations expected  
+#   neutral     — default; asks for approval on dangerous ops  
+#   destructive — auto-approves some write operations  
+#   yolo        — auto-approves everything  
+safety = "neutral"  
+  
+  
+# --------------------------------------------------------------------------  
+# OPTIONAL: AGENT TYPE  
+# --------------------------------------------------------------------------  
+  
+# Values: "agent" | "subagent"  
+#   agent    — primary agent, selectable via --agent or Shift+Tab (default)  
+#   subagent — only spawnable via the Task tool from another agent;  
+#              cannot be used as --agent unless allow_subagent=True  
+# agent_type = "agent"  
+  
+  
+# --------------------------------------------------------------------------  
+# OPTIONAL: SYSTEM PROMPT  
+# --------------------------------------------------------------------------  
+  
+# Override the system prompt. Must match either:  
+#   1. A builtin prompt ID: "cli", "explore", "lean"  
+#   2. A custom .md file name (without extension) in:  
+#        ~/.vibe/prompts/<id>.md  or  .vibe/prompts/<id>.md  
+#  
+# If omitted, inherits the global system_prompt_id (default: "cli").  
+# system_prompt_id = "my-custom-prompt"  
+  
+  
+# --------------------------------------------------------------------------  
+# OPTIONAL: MODEL OVERRIDES  
+# --------------------------------------------------------------------------  
+  
+# Force a specific model when this agent is active.  
+# Must match an alias defined in your config.toml models list.  
+# active_model = "devstral-small"  
+  
+# Override the auto-compact threshold (tokens) for this agent.  
+# auto_compact_threshold = 128000  
+  
+  
+# --------------------------------------------------------------------------  
+# OPTIONAL: TOOL ACCESS CONTROL  
+# --------------------------------------------------------------------------  
+  
+# Restrict the agent to ONLY these tools (whitelist).  
+# When set, all other tools are disabled.  
+# Supports exact names only.  
+# enabled_tools = ["grep", "read_file", "bash"]  
+  
+# OR disable specific tools (blacklist). Ignored if enabled_tools is set.  
+# disabled_tools = ["write_file", "search_replace"]  
+  
+# Auto-approve all tool calls without asking (like auto-approve mode).  
+# auto_approve = false  
+  
+  
+# --------------------------------------------------------------------------  
+# OPTIONAL: PER-TOOL CONFIGURATION  
+# --------------------------------------------------------------------------  
+  
+# Override permission, allowlist, or denylist for individual tools.  
+# These are deep-merged into the base VibeConfig.tools dict.  
+#  
+# Permission values: "ask" | "always" | "never"  
+  
+[tools.bash]  
+# permission = "ask"  
+# default_timeout = 30  
+# allowlist = ["ls", "cat", "grep"]  
+# denylist = ["rm -rf *"]  
+  
+[tools.write_file]  
+# permission = "always"          # auto-approve file writes  
+# allowlist = ["src/**"]         # only auto-approve writes under src/  
+# sensitive_patterns = ["*.env"] # always ask for .env files even if permission=always  
+  
+[tools.search_replace]  
+# permission = "always"  
+  
+  
+# --------------------------------------------------------------------------  
+# OPTIONAL: PROVIDER / MODEL ADDITIONS  
+# --------------------------------------------------------------------------  
+  
+# Add providers and models specific to this agent.  
+# These are merged with (not replacing) the base config.  
+#  
+# [[providers]]  
+# name = "my-provider"  
+# api_base = "https://api.example.com/v1"  
+# api_key_env_var = "MY_API_KEY"  
+# backend = "openai"  
+#  
+# [[models]]  
+# name = "my-model-name"  
+# provider = "my-provider"  
+# alias = "my-model"  
+# temperature = 0.7  
+# thinking = "off"              # "off" | "low" | "medium" | "high"  
+  
+# --------------------------------------------------------------------------  
+# OPTIONAL: COMPACTION MODEL  
+# --------------------------------------------------------------------------  
+  
+# Use a different model for context compaction (must share the same provider).  
+# [compaction_model]  
+# name = "mistral-small-latest"  
+# provider = "mistral"  
+# alias = "compact-model"  
+# temperature = 0.2  
+# thinking = "off"
+
+
+# --------------------------------------------------------------------------  
+# OPTIONAL: MCP (MODEL CONTEXT PROTOCOL) SERVERS  
+# --------------------------------------------------------------------------  
+#  
+# MCP servers expose remote tools that the agent can call. Each server  
+# entry is identified by its transport type: "stdio", "http", or  
+# "streamable-http".  
+#  
+# Tool naming: each discovered tool is registered as "<name>_<tool_name>".  
+# For example, a server with name = "github" exposing a tool called  
+# "list_repos" becomes the tool "github_list_repos".  
+#  
+# The "name" field is normalized: non-alphanumeric characters (except  
+# hyphens/underscores) are replaced with "_", then truncated to 256 chars.  
+#  
+# You can use enabled_tools / disabled_tools (above) to filter which  
+# MCP tools are active. Glob patterns work, e.g.:  
+#   enabled_tools = ["github_*", "grep", "read_file"]  
+#   disabled_tools = ["github_delete_*"]  
+  
+# --- Example: stdio transport (spawns a local process) ---  
+[[mcp_servers]]  
+name = "my-mcp"                    # Alias prefix for all tools from this server  
+transport = "stdio"                # "stdio" | "http" | "streamable-http"  
+command = "npx"                    # Command to run (string or list of strings)  
+args = ["-y", "@my-org/mcp-server"] # Additional CLI arguments appended to command  
+  
+# Optional environment variables passed to the spawned process.  
+# These are set ONLY for the MCP server process, not your shell.  
+[mcp_servers.env]  
+# MY_API_KEY = "sk-..."           # Or reference secrets via your shell env  
+# NODE_ENV = "production"  
+  
+# --- Example: streamable-http transport (remote HTTP server) ---  
+# [[mcp_servers]]  
+# name = "remote-tools"  
+# transport = "streamable-http"  
+# url = "https://mcp.example.com/sse"  
+#  
+# # Static headers sent with every request.  
+# [mcp_servers.headers]  
+# X-Custom-Header = "value"  
+#  
+# # Or use an env var for auth (preferred over hardcoding tokens):  
+# api_key_env = "REMOTE_MCP_TOKEN"     # Env var name containing the token  
+# api_key_header = "Authorization"      # Header to carry the token (default)  
+# api_key_format = "Bearer {token}"     # Format string; {token} is replaced  
+  
+# --- Example: legacy http transport ---  
+# [[mcp_servers]]  
+# name = "legacy-http"  
+# transport = "http"  
+# url = "http://localhost:8080/mcp"  
+  
+# --- Common optional fields (apply to all transports) ---  
+# These can be set on any [[mcp_servers]] entry:  
+#  
+# prompt = "Use this server for GitHub operations"  
+#     Optional hint appended to every tool description from this server.  
+#     Helps the LLM understand when to use these tools.  
+#  
+# startup_timeout_sec = 10.0  
+#     Max seconds to wait for the server to start and complete the MCP  
+#     initialize handshake. (default: 10.0)  
+#  
+# tool_timeout_sec = 60.0  
+#     Max seconds to wait for a single tool call to complete. (default: 60.0)  
+#  
+# sampling_enabled = true  
+#     Allow this MCP server to request LLM completions via the MCP  
+#     sampling/createMessage callback. Set to false to block server-initiated  
+#     LLM calls. (default: true)

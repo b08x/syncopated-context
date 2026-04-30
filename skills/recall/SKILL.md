@@ -1,11 +1,11 @@
 ---
 name: recall
-description: Multi-platform AI harness session recall across Claude Code, Gemini CLI, OpenCode, and Hermes. Correlates GitHub activity and backup changes. Handles temporal queries and cross-platform session aggregation.
+description: Multi-platform AI harness session recall across Claude Code, Gemini CLI, OpenCode, and Hermes. Correlates GitHub activity and backup changes. Handles temporal queries and cross-platform session aggregation with intelligent contextual chunking.
 license: MIT
 allowed-tools: Read Edit Grep Glob Bash Write
 metadata:
   author: b08x
-  version: "1.0.0"
+  version: "1.1.0"
   category: productivity
 ---
 
@@ -15,12 +15,18 @@ Comprehensive AI harness session recall across Claude Code, Gemini CLI, OpenCode
 
 ## Architecture Overview
 
-This skill uses a **normalized extraction layer** that unifies session data from all providers into a common `ParsedSession` schema, enabling:
+The system is built as a modular Python package (`recall/`) that enforces strict separation of concerns between data models, provider-specific extraction, AI analysis, and core orchestration.
 
-- **Provider-agnostic queries**: Same analysis works across all platforms
-- **Schema consistency**: Unified field names, timestamp formats, usage metrics
-- **Cross-platform correlation**: Sessions, notes, and commits from different tools can be compared
-- **DSPy-powered synthesis**: Structured LLM calls for narrative generation
+### Package Structure
+
+- **`recall/models.py`**: Unified dataclasses (`ParsedSession`, `ParsedMessage`, `SessionUsage`, etc.) ensuring schema consistency across all platforms.
+- **`recall/providers/`**: Platform-specific extractors (Gemini, Hermes, Claude Code, OpenCode, Obsidian, Local Git) inheriting from a common `BaseProvider`.
+- **`recall/ai/`**: 
+    - `signatures.py`: DSPy signatures for semantic analysis.
+    - `modules.py`: DSPy modules for topic extraction and timeline synthesis.
+    - `chunking.py`: **Contextual Chunking Strategy** for handling long sessions.
+- **`recall/core.py`**: Orchestrates providers and AI processing into a unified timeline.
+- **`scripts/recall_cli.py`**: Unified entry point for all operations.
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
@@ -28,35 +34,37 @@ This skill uses a **normalized extraction layer** that unifies session data from
 │  JSONL files    │     │   JSON files     │     │   SQLite DB    │
 └────────┬────────┘     └────────┬─────────┘     └────────┬────────┘
          │                       │                         │
-         └───────────────────────┼─────────────────────────┘
+         ▼                       ▼                         ▼
+    ┌───────────────────────────────────────────────────────────┐
+    │                RECALL PROVIDERS (Modular)                 │
+    │       (Normalizes data to ParsedSession/ParsedNote)       │
+    └────────────────────────────┬──────────────────────────────┘
+                                 │
                                  ▼
-                    ┌───────────────────────┐
-                    │  Normalization Layer  │
-                    │  (ParsedSession/Note) │
-                    └───────────┬───────────┘
-                                ▼
-                    ┌───────────────────────┐
-                    │   DSPy Correlation    │
-                    │   Timeline Synthesis   │
-                    └───────────┬───────────┘
-                                ▼
-                    ┌───────────────────────┐
-                    │ GitHub + Local Git    │
-                    │ Restic + Obsidian     │
-                    └───────────────────────┘
+    ┌───────────────────────────────────────────────────────────┐
+    │               CONTEXTUAL CHUNKING LAYER                   │
+    │      (Intelligent message grouping for LLM context)       │
+    └────────────────────────────┬──────────────────────────────┘
+                                 │
+                                 ▼
+    ┌───────────────────────────────────────────────────────────┐
+    │               DSPy CORRELATION & ANALYSIS                 │
+    │      (Timeline Synthesis + One Thing Generation)          │
+    └────────────────────────────┬──────────────────────────────┘
+                                 │
+                                 ▼
+    ┌───────────────────────────────────────────────────────────┐
+    │               OUTPUTS (CLI, JSON, Obsidian)               │
+    └───────────────────────────────────────────────────────────┐
 ```
 
-## What It Does
+## Key Features
 
-- **Multi-platform session aggregation**: Extracts and correlates sessions from all major AI platforms
-- **Obsidian integration**: Pulls recent notes from `~/Notebook` for cognitive context
-- **Local Git integration**: Scans `~/Workspace` for activity across all repositories
-- **Normalized schema**: All providers output identical `ParsedSession` or `ParsedNote` structure
-- **GitHub integration**: Pulls commit history, PR activity for contextual insights
-- **Backup correlation**: Analyzes restic incremental diffs for file evolution
-- **Temporal correlation**: Aligns session timestamps with commits and file changes
-- **DSPy synthesis**: Uses structured signatures for narrative generation
-- **One Thing generation**: Synthesizes single most impactful next action
+- **Multi-platform aggregation**: Correlates sessions from all major AI tools.
+- **Contextual Chunking**: Intelligently groups messages based on temporal gaps (>30 mins) and semantic boundaries (user directives + assistant execution) to prevent context loss in long sessions.
+- **Unified Schema**: All data is normalized before analysis, ensuring consistent results regardless of the source.
+- **Integrated Insights**: Combines session data with GitHub commits, local git logs, and Obsidian notes.
+- **Automated Visualization**: Generates temporal dashboards and interactive canvases in Obsidian.
 
 ## Platform Session Locations
 
@@ -69,84 +77,39 @@ This skill uses a **normalized extraction layer** that unifies session data from
 | Obsidian | `~/Notebook/*.md` | Recursive Markdown scan | Markdown |
 | Local Git | `~/Workspace/**/.git` | Recursive git log scan | Git |
 
-**Critical Path Fixes:**
-
-- **Gemini**: Use `~/.gemini/tmp/<hash>/chats/*.json` (NOT `antigravity/conversations`)
-- **Hermes**: Direct SQLite access (NOT CLI export dependency)
-- **All providers**: Output unified `ParsedSession` schema
-
 ## Workflow Script
 
-The primary interface is `scripts/recall_workflow.py` which orchestrates:
+The primary interface is `scripts/recall_workflow.py` which orchestrates the following pipeline:
 
-```
-STAGE 1: EXTRACTION     → Multi-provider normalized extraction
-STAGE 2: CORRELATION    → GitHub + restic integration, timeline build
-STAGE 3: SEARCH         → Optional topic search across combined data
-STAGE 4: ONE THING      → DSPy synthesis of highest-leverage action
-STAGE 5: VISUALIZATION  → Automated Obsidian Dashboard and Canvas generation
-```
+1.  **EXTRACTION**: Uses `recall_cli.py` to pull normalized sessions from specified platforms.
+2.  **ANALYSIS (Optional)**: Applies contextual chunking and DSPy topic extraction to individual sessions.
+3.  **CORRELATION**: Integrates GitHub/Git activity and restic backups into a unified timeline.
+4.  **SYNTHESIS**: Generates a narrative summary and identifies the **One Thing** next action.
+5.  **VISUALIZATION**: Updates Obsidian dashboards and canvases.
 
-### Basic Usage
+### CLI Usage (`scripts/recall_cli.py`)
 
 ```bash
-# Standard recall - last 7 days, all platforms
-python3 scripts/recall_workflow.py
+# Extract sessions from all platforms (last 7 days)
+PYTHONPATH=. python3 scripts/recall_cli.py extract --days 7
 
-# Extended timeframe with GitHub integration and custom vault
-python3 scripts/recall_workflow.py --days 14 --github-repo owner/repo --vault ~/MyVault
+# Extract and analyze topics using DSPy with contextual chunking
+PYTHONPATH=. python3 scripts/recall_cli.py extract --days 7 --analyze --model openai/gpt-4o-mini
 
-# Topic search across platforms
-python3 scripts/recall_workflow.py --search "authentication work" --days 30
+# Full correlation and synthesis
+PYTHONPATH=. python3 scripts/recall_cli.py correlate --days 7 --github-repo owner/repo
 
-# Specific platforms only
-python3 scripts/recall_workflow.py --platforms claude,hermes --days 7
+# Search across aggregated sessions
+PYTHONPATH=. python3 scripts/recall_cli.py search "authentication" --days 30
 ```
 
-### Output Structure
+## Contextual Chunking Strategy
 
-```
-/tmp/recall-output/
-├── sessions_20260402_093000.json      # Extracted normalized sessions
-├── correlation_20260402_093000.json   # Timeline + synthesis results
-└── search_results.json                 # (if --search used)
+To handle long-running sessions that might exceed LLM context windows or contain multiple distinct topics, the system uses a `ContextualChunker`:
 
-~/Notebook/ (or specified vault)
-├── Dashboards/
-│   └── Recall Dashboard YYYY-MM-DD.md  # Synthesized narrative + timeline
-└── Canvases/
-    └── Recall Timeline YYYY-MM-DD.canvas # Interactive temporal view
-```
-
-## Normalized Session Schema
-
-All providers output this unified structure:
-
-```python
-@dataclass
-class ParsedSession:
-    id: str                              # Unique session identifier
-    project_path: str                    # Project directory path
-    project_name: str                    # Project name
-    summary: Optional[str]               # LLM-generated summary (if available)
-    generated_title: Optional[str]       # Extracted or generated title
-    title_source: Optional[str]         # 'insight' | 'first_message'
-    session_character: Optional[str]     # Agent personality (if applicable)
-    started_at: datetime                 # Session start timestamp
-    ended_at: datetime                   # Session end timestamp
-    message_count: int                   # Total messages
-    user_message_count: int              # User messages only
-    assistant_message_count: int        # Assistant messages only
-    tool_call_count: int                 # Tool invocations
-    compact_count: int                   # Context compaction events
-    auto_compact_count: int              # Automatic compactions
-    slash_commands: List[str]            # Slash commands used
-    git_branch: Optional[str]            # Active git branch
-    claude_version: Optional[str]         # Claude version (Claude Code only)
-    source_tool: str                     # Provider name
-    usage: SessionUsage                  # Token usage metrics
-    messages: List[ParsedMessage]        # Normalized messages
-```
+1.  **Temporal Splits**: Automatically starts a new chunk if there is a gap of >30 minutes between messages.
+2.  **Semantic Integrity**: Ensures tool calls and their results are kept within the same chunk.
+3.  **User-Led Boundaries**: Prefers splitting at user messages (which typically introduce new instructions) when character limits (default 8,000) are reached.
 
 ## DSPy Signatures
 
@@ -154,188 +117,45 @@ The correlation engine uses structured signatures for synthesis:
 
 ```python
 class SessionTopicExtractor(dspy.Signature):
-    """Extract primary topics and activities from session content."""
+    """Extract topics/actions from a session chunk."""
     session_content: str = dspy.InputField()
     topics: List[str] = dspy.OutputField()
     files_touched: List[str] = dspy.OutputField()
     key_actions: List[str] = dspy.OutputField()
 
 class TimelineSynthesizer(dspy.Signature):
-    """Synthesize coherent narrative from multiple data sources."""
+    """Synthesize coherent narrative from timeline events."""
     sessions: List[Dict] = dspy.InputField()
     commits: List[Dict] = dspy.InputField()
-    file_changes: List[Dict] = dspy.InputField()
     narrative: str = dspy.OutputField()
     workstreams: List[str] = dspy.OutputField()
-    next_actions: List[str] = dspy.OutputField()
 
 class OneThingGenerator(dspy.Signature):
     """Generate single highest-leverage next action."""
     recent_activity: str = dspy.InputField()
-    open_questions: List[str] = dspy.InputField()
     one_thing: str = dspy.OutputField()
-    reasoning: str = dspy.OutputField()
-```
-
-**Fallback**: If DSPy unavailable, heuristic-based synthesis is used.
-
-### DSPy Configuration
-
-Environment variables control the LLM used for DSPy-powered synthesis:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `RECALL_DSPY_PROVIDER` | `openrouter` | LLM provider (openrouter, openai, anthropic, ollama) |
-| `RECALL_DSPY_MODEL` | `openai/gpt-4.1-nano` | Model identifier for synthesis |
-
-```bash
-# OpenRouter (default) - model includes provider prefix
-export RECALL_DSPY_PROVIDER=openrouter
-export RECALL_DSPY_MODEL=openai/gpt-4.1-nano  # Format: <provider>/<model>
-
-# Direct OpenAI
-export RECALL_DSPY_PROVIDER=openai
-export RECALL_DSPY_MODEL=gpt-4o-mini
-
-# Anthropic
-export RECALL_DSPY_PROVIDER=anthropic
-export RECALL_DSPY_MODEL=claude-sonnet-4-5-20250929
-
-# Local Ollama
-export RECALL_DSPY_PROVIDER=ollama
-export RECALL_DSPY_MODEL=llama3.2
-```
-
-DSPy LM configuration follows this pattern:
-```python
-lm = dspy.LM(
-    "openrouter/openai/gpt-4.1-nano",  # Format: openrouter/<model-id>
-    api_key="...",
-    base_url="https://openrouter.ai/api/v1"
-)
-```
-
-## Implementation Details
-
-### Stage 1: Multi-Provider Extraction
-
-```bash
-# Direct script access for extraction-only
-python3 scripts/normalized_sessions.py extract --days 7 --platforms all
-
-# Output: JSON with normalized sessions per provider
-{
-  "claude": [ParsedSession, ...],
-  "hermes": [ParsedSession, ...],
-  "gemini": [ParsedSession, ...],
-  "opencode": [ParsedSession, ...]
-}
-```
-
-**Provider-specific fixes applied:**
-
-- **Gemini**: Correct path `~/.gemini/tmp/<hash>/chats/*.json` + `.project_root` resolution
-- **Hermes**: Direct SQLite with proper timestamp handling (seconds, not milliseconds)
-- **Claude**: Existing JSONL parsing preserved
-- **OpenCode**: SQLite query with millisecond timestamp conversion
-
-### Stage 2: Correlation
-
-```bash
-# Correlation with GitHub integration
-python3 scripts/normalized_sessions.py correlate --days 7 --github-repo owner/repo
-
-# Output: Timeline + synthesis
-{
-  "timeline": [
-    {"type": "session", "platform": "hermes", "timestamp": "...", "summary": "..."},
-    {"type": "commit", "platform": "github", "timestamp": "...", "data": {...}}
-  ],
-  "correlation": {
-    "narrative": "Activity across 3 platforms...",
-    "workstreams": ["authentication", "api design", "testing"],
-    "next_actions": ["Continue auth work", "Review API changes"]
-  }
-}
-```
-
-### Stage 3: Topic Search
-
-```bash
-# Search across all normalized sessions
-python3 scripts/normalized_sessions.py search "authentication" --days 30
-
-# Results ranked by relevance
-Found 12 matching sessions
-  [hermes] AI harness (Hermes) OAuth implementation session (23 msgs)
-  [claude] AI harness (Claude Code) JWT token refresh work (45 msgs)
-  [gemini] AI harness (Gemini CLI) Auth middleware debugging (18 msgs)
-```
-
-## Common Baseline Failure Patterns
-
-| Failure Pattern | Agent Rationalization | Reality |
-|-----------------|----------------------|---------|
-| "I can only search current directory" | "Assumes user is in wrong repo" | Need to access AI harness-specific storage locations |
-| "Cannot access other AI tools" | "No capability to read AI harness session data" | Each AI harness has documented storage and export methods |
-| "GitHub requires authentication" | "Assumes complex API integration needed" | `gh cli` handles auth and provides simple commands |
-| "Generic next steps instead of actual data" | "Better to give advice than admit limitations" | Users need actual AI harness session content, not suggestions |
-
-**Red Flags - Use This Skill:**
-- "I can only search the current directory"
-- "I don't have access to your other AI harnesses"
-- "Let me suggest some next steps instead"
-- "You should manually check your AI harness sessions"
-
-## Usage Patterns
-
-### Temporal Recall
-```
-/recall yesterday                    # All platforms, yesterday
-/recall last week across platforms   # Multi-platform aggregation
-/recall 2025-03-25 with github      # Include GitHub activity
-/recall this week with backups      # Include restic diffs
-```
-
-### Platform-Specific
-```
-/recall platform:hermes last 3 days # AI harness (Hermes) only
-/recall platform:gemini auth work   # AI harness (Gemini CLI) sessions on "auth"
-/recall platform:claude code review # AI harness (Claude Code) sessions on "code review"
-```
-
-### Integrated Analysis
-```
-/recall github:myrepo auth commits   # GitHub commits + related sessions
-/recall backup:~/Workspace changes  # File changes + session correlation
-/recall cross-platform debugging    # All sources for "debugging" topic
 ```
 
 ## Anti-Hallucination & Evidence-Based Synthesis
 
-To prevent "Strategic Hype" or parroting of template content, the following rules apply to all synthesis operations:
+- **Evidence Requirement**: A "Workstream" MUST be backed by a Git commit, substantial assistant content (>5 messages), or documented file modifications.
+- **Template Isolation**: Never carry over "Active Projects" from previous recalls unless validated by *current* data.
+- **Zero Tolerance for Fluff**: Narratives must focus on kinetic energy (work done) rather than potential (untracked folders or empty files).
 
-- **Evidence Requirement**: A "Workstream" or "Initiative" MUST be backed by at least one of:
-    - A Git commit within the requested timeframe.
-    - At least 5 assistant messages of substantial content in a normalized session.
-    - Explicit file modifications (not just creation) documented in `file_changes`.
-- **Template Isolation**: Never carry over "Active Projects" or "Next Actions" from a previous dashboard or template unless they are validated by *current* session data.
-- **The "?? " Rule**: Items found in `git status` as untracked (??) are "Environmental Noise" and should be listed as "Potential Future Work" or "Untracked Artifacts," NOT as active initiatives.
-- **Zero Tolerance for Fluff**: If the last 3 days were just "plumbing," the narrative must state "Infrastructure stabilization" rather than inventing "Strategic Pivot to [Folder Name]."
+## Usage Patterns
 
-## Performance Notes
+### Temporal Recall
+- `/recall yesterday` (all platforms)
+- `/recall last 3 days with github`
+- `/recall 2026-04-15`
 
-- **Session extraction**: ~30 seconds for 7 days across all platforms
-- **Normalization overhead**: <5 seconds for schema alignment
-- **DSPy synthesis**: 10-15 seconds for narrative generation
-- **GitHub API**: Rate limited to 5000 requests/hour
-- **SQLite access**: Read-only, no locking conflicts
-- **Fallback heuristics**: Instant, deterministic results
+### Platform/Topic Focused
+- `/recall platform:gemini auth work`
+- `/recall search "refactoring"`
+- `/recall platform:claude code review`
 
-## Integration with Persistent Memory
+## Performance & Integration
 
-When configured with the memory system:
-- Cross-platform patterns stored as user memories
-- Failed correlation attempts stored as feedback memories
-- Project-specific session insights stored as project memories
-- Platform usage patterns tracked for optimization
+- **Extraction Speed**: ~30 seconds for a full weekly recall.
+- **DSPy Synthesis**: 10-15 seconds per analysis.
+- **Persistent Memory**: Correlated insights and platform usage patterns are stored in the memory system for cross-session optimization.

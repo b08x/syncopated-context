@@ -26,7 +26,7 @@ OUTPUT_DIR = Path("/tmp/recall-output")
 
 # Resolve paths relative to this script's directory (not cwd)
 SCRIPT_DIR = Path(__file__).parent.resolve()
-NORMALIZED_SESSIONS_SCRIPT = SCRIPT_DIR / "normalized_sessions.py"
+NORMALIZED_SESSIONS_SCRIPT = SCRIPT_DIR / "recall_cli.py"
 OBSIDIAN_VIZ_SCRIPT = SCRIPT_DIR / "obsidian_viz.py"
 
 
