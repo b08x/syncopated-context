@@ -1,11 +1,11 @@
 ---
-name: containerization
-description: Containerize applications using Docker with hardware-adaptive profiles (CPU, NVIDIA CUDA, Intel OpenVINO). Creates Dockerfiles, compose.yaml, and handles multi-service architectures.
+name: containerization  
+description: Use when containerizing applications or conducting pre-containerization reviews - dispatches preflight subagent for deployment context gathering, then creates hardware-adaptive Docker configurations (CPU, NVIDIA CUDA, Intel OpenVINO) with Dockerfiles and compose.yaml for multi-service architectures.
 license: MIT
-allowed-tools: Read Edit Grep Glob Bash Write
+allowed-tools: Read Edit Grep Glob Bash Write Agent
 metadata:
   author: b08x
-  version: "1.0.0"
+  version: "1.1.0" 
   category: automation
 ---
 
@@ -17,22 +17,90 @@ production-grade multi-stage Dockerfiles, hardware-adaptive compose orchestratio
 
 ## Workflow Overview
 
-The skill follows an **analyze → plan → confirm → execute** workflow:
+The skill follows an **preflight → analyze → plan → confirm → execute** workflow:
 
-1. **Detect** — Scan the project to identify frameworks, services, and databases
-2. **Plan** — Present findings and a proposed containerization plan to the user
-3. **Confirm** — Wait for user approval before making structural changes
-4. **Generate** — Create Dockerfiles, compose.yaml, .env, and supporting files
-5. **Verify** — Validate generated artifacts and provide usage instructions
+1. **Preflight Review** — Dispatch subagent to conduct pre-containerization analysis
+2. **Detect** — Scan the project to identify frameworks, services, and databases  
+3. **Plan** — Present findings and a proposed containerization plan to the user
+4. **Confirm** — Wait for user approval before making structural changes
+5. **Generate** — Create Dockerfiles, compose.yaml, .env, and supporting files
+6. **Verify** — Validate generated artifacts and provide usage instructions
 
 ## Trigger Scenarios
 
 | User Intent | Action |
 |------------|--------|
-| "Containerize my project" | Full workflow: detect → refactor → generate all artifacts |
+| "Containerize my project" | Full workflow: preflight → detect → refactor → generate all artifacts |
+| "Review before containerizing" | Preflight review only: dispatch subagent for deployment questionnaire |
 | "Create a new app with Docker" | Scaffold canonical structure + generate all artifacts |
 | "Add Docker to my frontend/backend" | Targeted: generate Dockerfile for the specified service only |
 | "Generate a compose.yaml" | Generate compose from existing structure (skip refactoring) |
+
+## Phase 0: Preflight Review (Subagent Dispatch)
+
+**Always start with preflight review** unless `containerization-plan.json` already exists.
+
+Before any technical analysis, dispatch a subagent to conduct the preflight review workflow. This eliminates false assumptions and ensures environment-specific containerization on the first pass.
+
+### Subagent Dispatch Pattern
+
+```
+Agent({
+  description: "Containerization preflight review",
+  prompt: "Conduct a comprehensive preflight review for containerizing this project. 
+  
+  Context: About to containerize an application. Need to gather critical deployment context including target environment, hardware acceleration capabilities, database requirements, port assignments, and validate assumptions before generating Docker artifacts.
+  
+  Follow this workflow:
+  1. Run project detection to identify services and frameworks
+  2. Load question bank and ask targeted questions based on detection
+  3. Build and validate containerization plan  
+  4. Write containerization-plan.json to project root
+  5. Present plan summary for confirmation
+  
+  CRITICAL: The containerization skill will consume your plan file - ensure it follows the exact schema in references/plan-schema.md.
+  
+  Report back: Plan summary and path to generated containerization-plan.json"
+})
+```
+
+### Preflight Workflow (for subagent reference)
+
+The subagent follows this complete workflow:
+
+1. **Run Project Detection** — Use detection script to identify services, frameworks, databases
+2. **Question Selection** — Load `references/question-bank.md`, select questions based on detection gates  
+3. **User Interview** — Present questions in logical batches (environment, hardware, services, networking, production)
+4. **Plan Assembly** — Build `containerization-plan.json` following `references/plan-schema.md`
+5. **Validation** — Check plan consistency (databases, ports, hardware profiles)
+6. **Plan Summary** — Present human-readable summary for user confirmation
+7. **File Generation** — Write validated plan to project root
+
+**Common preflight scenarios:**
+- React frontend on NVIDIA host → confirm GPU not needed for frontend
+- Python AI service → verify model loading strategy and hardware requirements  
+- Database dependencies → determine containerized vs external connections
+- Port conflicts → identify and resolve before Docker generation
+- Hardware acceleration → confirm toolkit installation and capability
+
+### Subagent Success Criteria
+
+The subagent succeeds when:
+- `containerization-plan.json` exists in project root
+- Plan follows exact schema in `references/plan-schema.md`
+- All user questions resolved with specific answers (no vague responses)
+- Validation checks pass (no conflicting configurations)
+- User confirms the plan summary before file generation
+
+### Handling Subagent Results
+
+After subagent completion:
+1. Verify `containerization-plan.json` exists and is valid JSON
+2. Load plan contents for Phase 1 consumption
+3. If plan missing or invalid, fall back to direct detection workflow
+4. If user rejects plan, re-dispatch subagent with amendments
+
+**Proceed to Phase 1 only after preflight review completion.**
 
 ## Phase 1: Project Detection (or Plan Consumption)
 
@@ -189,6 +257,13 @@ Provide the user with:
 
 These files contain detailed templates and configuration. Load them as needed:
 
+### Preflight Review References
+- **`references/question-bank.md`** — Complete question catalog with gate conditions, 
+  options, and impact descriptions for deployment context gathering
+- **`references/plan-schema.md`** — JSON schema for containerization-plan.json with 
+  field reference table and validation rules
+
+### Docker Generation References  
 - **`references/dockerfile-templates.md`** — All multi-stage Dockerfile templates
   with adaptation notes for each framework
 - **`references/compose-reference.md`** — Full compose.yaml template with service
