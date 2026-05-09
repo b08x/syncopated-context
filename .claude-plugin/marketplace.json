@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "syncopated-context",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Multi-platform development suite for Claude Code. Ruby-focused rubysmithing plugin with 13 specialized agents, plus notebook plugin for AI session recall across platforms (Claude Code, Hermes, Gemini CLI, OpenCode) with GitHub and backup integration.",
   "owner": {
     "name": "Robert Pannick",
@@ -11,7 +11,7 @@
     {
       "name": "rubysmithing",
       "description": "Convention-aware Ruby development suite with 13 job-function agents: agentic-operations-lead, agentic-software-engineer, context-engineer, cognitive-architect, ux-engineer, platform-engineer, maintenance-architect, ruby-diagnostics-engineer, senior-qa-engineer, director-of-ai-risk, compliance-guardrail-agent, developer-experience-engineer, senior-backend-architect. Includes 6 workflow commands (diagnose, audit, translate, document, flow, vibe) using SDD-style task pipelines. Lite Mode for stdlib scripts, Standard Mode with async, circuit_breaker, Zeitwerk compliance for production code.",
-      "version": "2.1.0",
+      "version": "2.1.1",
       "author": {
         "name": "Robert Pannick",
         "email": "rwpannick@gmail.com"
