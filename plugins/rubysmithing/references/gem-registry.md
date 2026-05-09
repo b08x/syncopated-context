@@ -160,11 +160,11 @@ Last updated: 2026-03-18
 
 ## Algorithms / Knowledge Structures
 
-| Gem | Context7 ID | Role | Notes | last_verified |
-|---|---|---|---|---|
-| algorithms | `/kanwei/algorithms` | Data structures | No Context7 entry | 2026-03 |
-| rubyfca | `/yohasebe/rubyfca` | Formal Concept Analysis | Lattice construction | 2026-03 |
-| gemoji | `/github/gemoji` | Emoji lookup | No Context7 entry; CLI rendering only | 2026-03 |
+| Gem        | Context7 ID          | Role                    | Notes                                 | last_verified |
+| ---------- | -------------------- | ----------------------- | ------------------------------------- | ------------- |
+| algorithms | `/kanwei/algorithms` | Data structures         | No Context7 entry                     | 2026-03       |
+| rubyfca    | `/yohasebe/rubyfca`  | Formal Concept Analysis | Lattice construction                  | 2026-03       |
+| gemoji     | `/github/gemoji`     | Emoji lookup            | No Context7 entry; CLI rendering only | 2026-03       |
 
 ---
 
